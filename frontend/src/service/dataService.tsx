@@ -92,3 +92,14 @@ export async function uploadExplainMethod(text:any) : Promise<any>{
     }
     throw res;
 }
+
+export async function getDatasets(): Promise<any>{
+    let url = '/datasets';
+    let res;
+    res = await axiosInstance.get(url);
+    
+    if (res.status === 200){
+        return res.data;
+    }
+    throw res;
+}

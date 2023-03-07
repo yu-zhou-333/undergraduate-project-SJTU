@@ -2,6 +2,7 @@ import React from "react";
 import Gen9BAs from "../components/9bas";
 import GenFeatures from "../components/2layers"
 import GenExplainMethods from "../components/ExplainMethods";
+import Page1 from "../components/page1";
 
 export interface PageProps {
     changeNext : any,
@@ -45,6 +46,19 @@ export class DisplayExplainRes extends React.Component<PageProps,{}>
     render(){
         return(
             <GenExplainMethods changeNext={this.props.changeNext} updateParams={this.props.updateParams}/> 
+        )
+    }
+}
+
+export class PAGE1 extends React.Component<{},{}>
+{
+    constructor(props:any)
+    {
+        super(props);
+    }
+    render(){
+        return(
+            <Page1/>
         )
     }
 }

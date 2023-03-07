@@ -9,14 +9,7 @@ def dgl2dict(g, graph_name = None, graph_label = -1):
     Parameters 
     g : dgl graph
     graph_name : str
-    nfeatures : list of features 
-        Node features. The tensor can be reshaped as (N,dim) where N is the number
-        of features and dim is the dimension of the feature. It can be (t,Nt,dim) 
-        for hetergraph, where t is the type of the node; Nt is the number of type t.
-
-    eweights : list of weights
-        Edge weights. The tensor can be reshaped as (N,dim) or it van be (t,Nt,dim)
-        for hetergraph, where t is the canonical_etype of the edge.
+    graph_label : int  
     Returns
     A dict of the given graph
     """
@@ -51,9 +44,14 @@ def writeDglGraph(logdir,g,filename):
     Transfer a dgl graph to dict and save it to logdir
     """
     res = dgl2dict(g,filename)
-    with open(logdir+'/'+filename, 'w') as f:
+    with open(logdir+'/'+filename+'.json', 'w') as f:
         json.dump(res,f)
     return res
+
+def writeDictGraph(logdir,g,filename):
+    with open(logdir+'/'+filename+'.json', 'w') as f:
+        json.dump(g,f)
+    return g
 
 def write9BAs(logdir,g_list,g_labels):
     """

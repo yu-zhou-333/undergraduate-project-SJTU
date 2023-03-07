@@ -1,6 +1,7 @@
 from flask import request, jsonify, Blueprint, current_app
 from extension import cache
 from db import *
+from db2 import *
 api = Blueprint('api', __name__)
 
 ######################
@@ -129,3 +130,12 @@ def get_newExplain():
         return jsonify({'success':True,'graph':g})
     except Exception as e:
         return jsonify({'success':False,'info':repr(e)})
+    
+######################################### New code start here #########################################
+
+@api.route('/datasets',methods=['GET'])
+def get_datasets():
+    datasets = get_Datasets()
+    logdir = current_app.config["LOGDIR"]
+    writeDictGraph(logdir,datasets,datasets['name'])
+    return jsonify({'success':True,'graph':datasets})

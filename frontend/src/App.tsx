@@ -2,7 +2,7 @@ import * as React from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid'
 import MyNavigator from './components/navigation'
-import {Display9ba,DisplayExplainRes,DisplayFeatures} from './pages/pages';
+import {Display9ba,DisplayExplainRes,DisplayFeatures, PAGE1} from './pages/pages';
 
 var IsPage1Terminate = false;
 
@@ -72,26 +72,40 @@ export default class App extends React.Component<{},AppState> {
     }
   }
 
+  // render() {
+  //   return (
+  //     <Box sx={{ flexGrow: 1 }} style={{margin:'15px'}} >
+  //     <Grid container rowSpacing={3} columnSpacing={0} >
+      
+  //     <Grid item xs={12}>
+  //     <MyNavigator step={this.state.page-1} changePage={this.changePage} next_state={this.state.disabled_next}/>
+  //     </Grid>
+  //     <Grid item xs={12} >
+
+  //        {/* 条件渲染 true&&expression会返回expression； false&&expression会跳过 */}
+  //       {
+  //         this.state.page === 1 && <Display9ba updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams} />
+  //       }
+  //       {
+  //         this.state.page === 2 && <DisplayFeatures updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams}/>
+  //       }
+  //       {
+  //         this.state.page === 3 && <DisplayExplainRes updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams}/>
+  //       }
+  //     </Grid>
+  //     </Grid>
+  //   </Box>
+  //   );
+  // }
   render() {
     return (
       <Box sx={{ flexGrow: 1 }} style={{margin:'15px'}} >
       <Grid container rowSpacing={3} columnSpacing={0} >
       
       <Grid item xs={12}>
-      <MyNavigator step={this.state.page-1} changePage={this.changePage} next_state={this.state.disabled_next}/>
       </Grid>
       <Grid item xs={12} >
-
-         {/* 条件渲染 true&&expression会返回expression； false&&expression会跳过 */}
-        {
-          this.state.page === 1 && <Display9ba updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams} />
-        }
-        {
-          this.state.page === 2 && <DisplayFeatures updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams}/>
-        }
-        {
-          this.state.page === 3 && <DisplayExplainRes updatePage={this.changePage} changeNext={this.changeNext} updateParams={this.updateParams}/>
-        }
+        <PAGE1></PAGE1>
       </Grid>
       </Grid>
     </Box>
