@@ -93,12 +93,35 @@ export async function uploadExplainMethod(text:any) : Promise<any>{
     throw res;
 }
 
+///////////////////  new Code starts here /////////////////////////////
+
+// Get initial Datasets
 export async function getDatasets(): Promise<any>{
     let url = '/datasets';
     let res;
     res = await axiosInstance.get(url);
     
     if (res.status === 200){
+        return res.data;
+    }
+    throw res;
+}
+
+// Upload Graphs
+export async function uploadGraph(graph:any): Promise<any>{
+    let url = '/get_graph';
+    let res;
+    let formdata = new FormData();
+    formdata.append('graph',graph);
+    console.log('data',formdata.get('graph'))
+    res = await axiosInstance.post(url,formdata,
+        {headers: {
+        'Content-Type': 'multipart/form-data'
+      }}
+      );
+    
+    if (res.status === 200){
+        console.log('res',res);
         return res.data;
     }
     throw res;

@@ -15,6 +15,7 @@
     "react": "latest",
     "react-ace": "^10.1.0",
     "react-dom": "latest",
+    "react-native": "^0.71.6",
     "react-router-dom": "^6.3.0",
     "react-scripts": "latest",
     "typescript": "latest"

@@ -22,7 +22,7 @@ export interface IState {
     method : string,
     given_methods: any,
     graph : any,
-    bins : number|number[],
+    bins : any,
     accs : any,
     dataProcess : any,
     IsLoading : boolean,
@@ -120,6 +120,7 @@ export default class GenExplainMethods extends React.Component <IProps,IState>
         this.drawChart(this.state.graph,e.target.value)
         d3.select('body').select('#presentarea').style('visibility','visible');
     }
+    
     handleBlur = () => {
         // handle when bins out of range
         if (this.state.bins < 1) {

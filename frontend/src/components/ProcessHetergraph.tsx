@@ -3,11 +3,22 @@ export class ProcessHetergraph
 {
     nodes:any = [];
     edges:any = [];
+    nfeatures:any = [];
+    nfeatures_map:any = [];
     mapp:any = [];
     edgemask_type:any = [];
+    graph_name:string = 'None';
     constructor(g:any)
     {
         let cnt = 0;
+        this.graph_name = g.name;
+        for (let nodeType in g.features){
+            for(let feat in g.features[nodeType])
+            {
+                this.nfeatures.push(feat.concat(nodeType))
+                this.nfeatures_map[feat.concat(nodeType)] = feat;
+            }
+        }
 
         // Map different nodes to same id (key : NodeType + local id)
         for (let k in g.num_nodes){

@@ -27,8 +27,8 @@ function ForceGraph({
     linkStrokeLinecap = "round", // link stroke linecap
     linkStrength,
     colors = d3.schemeTableau10, // an array of color strings, for the node groups
-    width = 640, // outer width, in pixels
-    height = 400, // outer height, in pixels
+    width = 1640, // outer width, in pixels
+    height = 1400, // outer height, in pixels
     highlightNode = d=>d.IsGT, //given d , return 1 or 0
     highlightColor = '#ff1525',
     invalidation // when this promise resolves, stop the simulation

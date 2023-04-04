@@ -86,16 +86,17 @@ function Histogram(data,prev, {
     
     
     const gb = svg.append("g")
+    console.log("bins",bins);
   
-    const rects = svg.append("g")
-        .attr("fill", color)
-      .selectAll("rect")
-      .data(bins)
-      .join("rect")
-        .attr("x", d => xScale(d.x0) + insetLeft)
-        .attr("width", d => Math.max(1, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
-        .attr("y", (d, i) => yScale(Y[i]))
-        .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+    svg.append("g")
+    .attr("fill", color)
+  .selectAll("rect")
+  .data(bins)
+  .join("rect")
+    .attr("x", d => xScale(d.x0) + insetLeft)
+    .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
+    .attr("y", (d, i) => yScale(Y[i]))
+    .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
         .on('mouseenter',function(e,d){
           if (svg.property('highlightRange')===0 || svg.property('highlightRange').low===undefined)
           {
