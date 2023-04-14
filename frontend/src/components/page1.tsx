@@ -1,5 +1,4 @@
 import React from "react";
-import { useWindowDimensions } from 'react-native';
 import { getDatasets,uploadGraph} from '../service/dataService';
 import {ProcessHetergraph} from "./ProcessHetergraph";
 import { Button, Grid,Box,TextField, Typography,FormControl,InputLabel,Select,MenuItem,Slider,Input,Alert, CircularProgress, AlertTitle } from '@mui/material';
@@ -24,7 +23,11 @@ export interface IState {
     node_feature: string,
     selected_graph_features : string[],
     selected_graph_nfeature: string,
-    bins : any
+    bins : any,
+    IsGraphDisplayed : boolean,
+    NodeID : number,
+    Hop : number,
+    graph_painter : any
 }
 
 export default class Page1 extends React.Component <IProps,IState>
@@ -40,7 +43,11 @@ export default class Page1 extends React.Component <IProps,IState>
             node_feature : '',
             upload_graph : 'None',
             selected_graph_features : [],
-            selected_graph_nfeature : ''
+            selected_graph_nfeature : '',
+            IsGraphDisplayed : false,
+            NodeID : 0,
+            Hop : 3,
+            graph_painter : undefined
         }
     }
     async getInitDatasets(){
@@ -103,26 +110,42 @@ export default class Page1 extends React.Component <IProps,IState>
     }
 
     handleSelectNfeature = (e:any) => {
-        this.setState({...this.state,selected_graph_nfeature:String(e.target.value)})
+        
         let g = this.state.graphs[this.state.selected_dataset]
         let data = {
             nodes : g.nodes,
             links : g.edges
         }
         let nfeature = g.nfeatures_map[String(e.target.value)]
-        this.drawOpening(data,nfeature)
+        let painter = this.drawOpening(data,nfeature,0,'InitialSample')
+        this.setState({...this.state,selected_graph_nfeature:String(e.target.value),
+            IsGraphDisplayed:true,graph_painter:painter})
     }
 
     handleBlur = () => {
         // handle when bins out of range
         if (this.state.bins < 2) {
           this.setState({...this.state,bins:2})
-        } else if (this.state.bins > 100) {
-          this.setState({...this.state,bins:100})
+        } else if (this.state.bins > 1000) {
+          this.setState({...this.state,bins:1000})
         }
     };
 
-    drawOpening = (data?:any,nfeature?:string,bins?:number|number[]) => {
+    handleBlur_NodeID = () => {
+        if (this.state.NodeID < 0){
+            this.setState({...this.state,NodeID : 0})
+        }
+    }
+
+    handleBlur_Hop = () => {
+        if (this.state.Hop < 0){
+            this.setState({...this.state,Hop:0})
+        } else if (this.state.Hop>10){
+            this.setState({...this.state,Hop:10})
+        }
+    }
+
+    drawOpening = (data?:any,nfeature?:string,bins?:number|number[],DisplayLabel?:string) => {
         let g = this.state.graphs[this.state.selected_dataset];
         if (!data){
             data = {
@@ -131,16 +154,21 @@ export default class Page1 extends React.Component <IProps,IState>
             }
         }
         if (!bins) bins = this.state.bins;
-        if (!nfeature) nfeature = g.nfeatures_map[this.state.selected_graph_nfeature]
+        if (!nfeature) nfeature = g.nfeatures_map[this.state.selected_graph_nfeature];
+        if (!DisplayLabel) DisplayLabel = undefined;
         console.log('data',data);
 
         const prev = d3.select("body").select('#Grapharea')
         const prevBar = prev.select("#Bar");
         const prevFdg = prev.select("#Fdg");
         prev.selectAll("svg").remove();
-        console.log('bins',bins,nfeature);
-        OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,bins:bins,hist_label:this.state.selected_graph_nfeature})
-
+        const windowWidth = document.body.clientWidth
+        const windowHeight = window.innerHeight
+        let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,bins:bins,hist_label:this.state.selected_graph_nfeature,
+        width:windowWidth,height:windowHeight},{Display_label:DisplayLabel})
+        painter.drawGraph();
+        painter.update_hop(this.state.Hop);
+        return painter;
     }
 
 
@@ -216,10 +244,13 @@ export default class Page1 extends React.Component <IProps,IState>
                 <Slider
                     value={typeof this.state.bins === 'number' ? this.state.bins : 2}
                     onChange={(e:Event,newValue:number|number[])=>{
-                        this.setState({...this.state,bins:newValue});
-                        this.drawOpening(0,'',newValue)
-                        
+                        if (this.state.selected_graph_nfeature!=='')
+                        {
+                            this.setState({...this.state,bins:newValue,IsGraphDisplayed:true});
+                            this.drawOpening(0,'',newValue,'InitialSample')
+                        }
                     }}
+                    max = {1000}
                     min = {2}
                     aria-labelledby="bin-input-slider"
                 />
@@ -229,14 +260,17 @@ export default class Page1 extends React.Component <IProps,IState>
                     value={this.state.bins}
                     size="small"
                     onChange={(e)=>{
-                        this.setState({...this.state,bins:Number(e.target.value)})
-                        this.drawOpening(0,'',Number(e.target.value))
+                        if (this.state.selected_graph_nfeature!=='')
+                        {
+                            this.setState({...this.state,bins:Number(e.target.value),IsGraphDisplayed:true})
+                            this.drawOpening(0,'',Number(e.target.value),'InitialSample')
+                        }
                     }}
                     onBlur={this.handleBlur}
                     inputProps={{
                     step: 1,
                     min: 2,
-                    max: 100,
+                    max: 1000,
                     type: 'number',
                     'aria-labelledby': 'bin-input-slider',
                     }}
@@ -252,9 +286,61 @@ export default class Page1 extends React.Component <IProps,IState>
             </Grid>
             <h1>{this.state.upload_graph}</h1>
 
-            <Grid item container id='Grapharea' xs={12}>
-                <Grid item container id='Bar' xs={12}></Grid>
-                <Grid item container id='Fdg' xs={12}></Grid>
+            <Grid item container id='Grapharea' xs={12} spacing={1}>
+            {this.state.IsGraphDisplayed && 
+                    (
+                    <Grid item container xs = {6} spacing={2}>
+                        <Grid item xs={6}>
+                        <InputLabel id='select-helper-label'>NodeID</InputLabel>
+                            <Input
+                                value={this.state.NodeID}
+                                size="small"
+                                onChange={(e)=>{
+                                    this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true});
+                                    let painter = this.state.graph_painter;
+                                    painter.update_nid(Number(e.target.value));
+                                    painter.update_fdgnodes();
+                                    painter.drawFDG();
+                                }}
+                                onBlur={this.handleBlur_NodeID}
+                                inputProps={{
+                                step: 1,
+                                min: 0,
+                                type: 'number',
+                                'aria-labelledby': 'bin-input-slider',
+                                }}
+                            />
+                        </Grid>
+                        <Grid item xs={6}>
+                        <InputLabel id='select-helper-label'>Hop</InputLabel>
+                        <Input
+                            value={this.state.Hop}
+                            size="small"
+                            onChange={(e)=>{
+                                this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true})
+                                let painter = this.state.graph_painter;
+                                painter.update_hop(Number(e.target.value));
+                                painter.update_fdgnodes();
+                                painter.drawFDG();
+                            }}
+                            onBlur={this.handleBlur_Hop}
+                            inputProps={{
+                            step: 1,
+                            min: 0,
+                            max: 10,
+                            type: 'number',
+                            'aria-labelledby': 'bin-input-slider',
+                            }}
+                        />
+                        </Grid>
+                    </Grid>
+                    )
+                }
+                <Grid item className="graphs" container id='Fdg' xs={12}>
+                
+                </Grid>
+                <Grid item className="graphs" container id='Bar' xs={12}></Grid>
+                
 
             </Grid>
            </Grid>

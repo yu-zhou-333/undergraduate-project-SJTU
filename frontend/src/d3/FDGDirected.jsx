@@ -11,6 +11,8 @@ export function ForceGraph(prev,
     nodeGroups, // an array of ordinal values representing the node groups
     nodeTitle, // given d in nodes, a title string
     nodeFill = "currentColor", // node stroke fill (if not using a group color encoding)
+    HighlightNodeFill = '#ff1744', // Node color when selected
+    HighlightNodes = [], // nodes to highlight
     nodeStroke = "#fff", // node stroke color
     nodeStrokeWidth = 1.5, // node stroke width, in pixels
     nodeStrokeOpacity = 1, // node stroke opacity
@@ -24,7 +26,7 @@ export function ForceGraph(prev,
     linkStrokeLinecap = "round", // link stroke linecap
     linkTypes=[1,2,3,4], // list of types of edge
     edgemask = d=>1, // function of edge mask
-    linktype = d=>0, // given d , return the type of d where 1 means ground truth
+    linktype = d=>0, // given d , return the type of d where 1 means ground truth; set 1 to obtain link arrow
     colors = d3.schemeTableau10, // an array of color strings, for the node groups
     width = 640, // outer width, in pixels
     height = 400, // outer height, in pixels
@@ -36,6 +38,7 @@ export function ForceGraph(prev,
     } = {}
   ) {
     // Compute values.
+    // console.log('Ingraphnodes',nodes)
     const N = d3.map(nodes, nodeId).map(intern);
     const LS = d3.map(links, linkSource).map(intern);
     const LT = d3.map(links, linkTarget).map(intern);
@@ -44,7 +47,7 @@ export function ForceGraph(prev,
     const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
     const W = typeof linkStrokeWidth !== "function" ? null : d3.map(links, linkStrokeWidth);
     const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
-    const highlightNode = []
+    const CenterNode = []
     var transform = d3.zoomIdentity;
     
     
@@ -85,40 +88,40 @@ export function ForceGraph(prev,
 
 
     // add length
-    var data_legend = [
-        {
-            name:"Selected edge match Ground Truth",
-            color:linkColor(linkTypes[3])
-        },
-        {
-            name:"Selected edge mismatch Ground Truth",
-            color:linkColor(linkTypes[2])
-        },
-        {
-            name:"Ground Truth",
-            color:linkColor(linkTypes[1])
-        }
-    ];
+    // var data_legend = [
+    //     {
+    //         name:"Selected edge match Ground Truth",
+    //         color:linkColor(linkTypes[3])
+    //     },
+    //     {
+    //         name:"Selected edge mismatch Ground Truth",
+    //         color:linkColor(linkTypes[2])
+    //     },
+    //     {
+    //         name:"Ground Truth",
+    //         color:linkColor(linkTypes[1])
+    //     }
+    // ];
 
-    var legend = svg.selectAll(".legend") 
-        .data(data_legend)
-        .enter().append("g")
-        .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(-350," + (i * 20 - 200) + ")"; }); 
+    // var legend = svg.selectAll(".legend") 
+    //     .data(data_legend)
+    //     .enter().append("g")
+    //     .attr("class", "legend")
+    //     .attr("transform", function(d, i) { return "translate(-350," + (i * 20 - 200) + ")"; }); 
     
 
-    legend.append("rect")
-        .attr("x", width - 25)
-        .attr("y", 8)
-        .attr("width", 40)
-        .attr("height", 3) 
-        .attr("fill", d=>d.color);
+    // legend.append("rect")
+    //     .attr("x", width - 25)
+    //     .attr("y", 8)
+    //     .attr("width", 40)
+    //     .attr("height", 3) 
+    //     .attr("fill", d=>d.color);
 
-    legend.append("text")
-        .attr("x", width - 30)
-        .attr("y", 15)
-        .style("text-anchor", "end") 
-        .text(d=>d.name);
+    // legend.append("text")
+    //     .attr("x", width - 30)
+    //     .attr("y", 15)
+    //     .style("text-anchor", "end") 
+    //     .text(d=>d.name);
   
 
     
@@ -128,16 +131,18 @@ export function ForceGraph(prev,
                           .join("marker")
                             .attr("id", d => `arrow-${d}`)
                             .attr("viewBox", "0 -5 10 10")
-                            .attr("refX", 15)
+                            .attr("refX", 20)
                             .attr("refY", -0.5)
-                            .attr("markerWidth", 5)
-                            .attr("markerHeight", 5)
+                            .attr("markerWidth", 4)
+                            .attr("markerHeight", 4)
                             .attr("orient", "auto")
                           .append("path")
                             .attr("fill", linkColor)
                             .attr("d", "M0,-5L10,0L0,5");
                      
-                  
+    
+     
+
     const link = svg.append("g")
         .attr("stroke-width", typeof linkStrokeWidth !== "function" ? linkStrokeWidth : null)
         .attr("stroke-linecap", linkStrokeLinecap)
@@ -150,22 +155,51 @@ export function ForceGraph(prev,
       .attr("marker-end", d =>  d.type ?`url(${new URL(`#arrow-${linkTypes[1]}`, location)})`: null);
   
     const node = svg.append("g")
-        .attr("fill", nodeFill)
+        
         .attr("stroke", nodeStroke)
         .attr("stroke-opacity", nodeStrokeOpacity)
         .attr("stroke-width", nodeStrokeWidth)
-        .property("highlightNode",highlightNode)
+        .property("CenterNode",CenterNode)
+        .property("HighlightNodes",HighlightNodes)
       .selectAll("circle")
       .data(nodes)
       .join("circle")
-        .attr("r", nodeRadius)
+      .attr("fill",d => HighlightNodes.includes(d.id) ? HighlightNodeFill : nodeFill)
+        .attr("r",d => HighlightNodes.includes(d.id) ? nodeRadius*2 : nodeRadius)
         .call(drag(simulation))
         .on('mouseenter',function (e,d) {
           // set the current node to highlight and let others know
-          svg.property('highlightNode',[d.id]).dispatch('highlightNode')
+          d3.select(this).attr('r',nodeRadius*2)
+                          .attr('fill',HighlightNodeFill)
+                          .style('cursor', 'pointer')
         })
         .on('mouseleave',function (e,d) { 
-          svg.property('highlightNode',highlightNode).dispatch('highlightNode')
+          if (!HighlightNodes.includes(d.id))
+          {// if the node is not in highlight list, dehighlight it
+            d3.select(this).attr('r',nodeRadius)
+                          .attr('fill',nodeFill)
+                          .style('cursor','default')
+                        }
+        })
+        .on('click',function (e,d){
+          //single click to highlight/dehighlight the node
+          if(HighlightNodes.includes(d.id)){
+            HighlightNodes =  HighlightNodes.filter(e=>e!==d.id);
+            d3.select(this).attr('r',nodeRadius)
+                          .attr('fill',nodeFill)
+            svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
+          }
+          else{
+            HighlightNodes.push(d.id);
+            d3.select(this).attr('r',nodeRadius*2)
+                            .attr('fill',HighlightNodeFill)
+            svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
+          }
+        })
+        .on('dblclick',function(e,d){
+          // double click to use the node as center node
+          svg.property('CenterNode',{centernode : d.id,highlightlist : HighlightNodes})
+          .dispatch('CenterNode')
         });
     
   

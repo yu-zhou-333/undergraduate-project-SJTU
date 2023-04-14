@@ -49,12 +49,14 @@ function Histogram(data,prev, {
     if (xDomain === undefined) xDomain = [bins[0].x0, bins[bins.length - 1].x1];
     if (yDomain === undefined) yDomain = [0, d3.max(Y)];
 
-    const antinorm = d3.scaleLinear().domain([xRange[0],xRange[1]]).range([xDomain[0],xDomain[1]])
+    let antinorm = d3.scaleLinear().domain([xRange[0],xRange[1]]).range([xDomain[0],xDomain[1]])
   
     // Construct scales and axes.
-    const xScale = xType(xDomain, xRange);
+    let xScale = xType(xDomain, xRange);
     const yScale = yType(yDomain, yRange);
-    const xAxis = d3.axisBottom(xScale).ticks(width / 80, xFormat).tickSizeOuter(0);
+    let xAxis = g => g
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(xScale).tickSizeOuter(0))
     const yAxis = d3.axisLeft(yScale).ticks(height / 40, yFormat);
     yFormat = yScale.tickFormat(100, yFormat);
     const defaultSelection = []
@@ -70,6 +72,60 @@ function Histogram(data,prev, {
         ;
   
 
+    
+    
+    
+    const gb = svg.append("g")
+  
+    svg.append("g")
+      .attr('class','bars')
+      .attr("fill", color)
+    .selectAll("rect")
+    .data(bins)
+    .join("rect")
+      .attr("x", d => xScale(d.x0) + insetLeft)
+      .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
+      .attr("y", (d, i) => yScale(Y[i]))
+      .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+          .on('mouseenter',function(e,d){
+            if (svg.property('highlightRange')===0 || svg.property('highlightRange').low===undefined)
+            {
+            d3.select(this).attr("fill",'#009688');
+            svg.property('highlightRange',{low:d.x0,
+            high:d.x1}).dispatch('highlightRange');
+            svg.property('IsSingleRect',1);
+            }
+          })
+          .on('mouseleave',function(e,d){
+            if (svg.property('IsSingleRect')){
+            d3.select(this).attr("fill",color);
+            svg.property('highlightRange',0);
+            svg.property('IsSingleRect',0);
+          }
+          })
+        .append("title")
+          .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
+
+      const brush = d3.brushX()
+      .extent([[marginLeft, 0.5], [width - marginRight, height - marginBottom + 0.5]])
+      .on("brush", brushed)
+      .on("end", brushended);
+  
+      gb
+      .call(brush)
+      .call(brush.move, defaultSelection);
+  
+    svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .attr('class','x-axis')
+        .call(xAxis)
+        .call(g => g.append("text")
+            .attr("x", width - marginRight)
+            .attr("y", 27)
+            .attr("fill", "currentColor")
+            .attr("text-anchor", "end")
+            .text(xLabel));
+
     svg.append("g")
         .attr("transform", `translate(${marginLeft},0)`)
         .call(yAxis)
@@ -83,61 +139,37 @@ function Histogram(data,prev, {
             .attr("fill", "currentColor")
             .attr("text-anchor", "start")
             .text(yLabel));
-    
-    
-    const gb = svg.append("g")
-    console.log("bins",bins);
-  
-    svg.append("g")
-    .attr("fill", color)
-  .selectAll("rect")
-  .data(bins)
-  .join("rect")
-    .attr("x", d => xScale(d.x0) + insetLeft)
-    .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
-    .attr("y", (d, i) => yScale(Y[i]))
-    .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
-        .on('mouseenter',function(e,d){
-          if (svg.property('highlightRange')===0 || svg.property('highlightRange').low===undefined)
-          {
-          d3.select(this).attr("fill",'#009688');
-          svg.property('highlightRange',{low:d.x0,
-          high:d.x1}).dispatch('highlightRange');
-          svg.property('IsSingleRect',1);
-          }
-        })
-        .on('mouseleave',function(e,d){
-          if (svg.property('IsSingleRect')){
-          d3.select(this).attr("fill",color);
-          svg.property('highlightRange',0).dispatch('highlightRange');
-          svg.property('IsSingleRect',0);
-        }
-        })
-      .append("title")
-        .text((d, i) => [`${d.x0} ≤ x < ${d.x1}`, yFormat(Y[i])].join("\n"));
 
-      const brush = d3.brushX()
-      .extent([[marginLeft, 0.5], [width - marginRight, height - marginBottom + 0.5]])
-      .on("brush", brushed)
-      .on("end", brushended);
-  
-      gb
-      .call(brush)
-      .call(brush.move, defaultSelection);
-  
-    svg.append("g")
-        .attr("transform", `translate(0,${height - marginBottom})`)
-        .call(xAxis)
-        .call(g => g.append("text")
-            .attr("x", width - marginRight)
-            .attr("y", 27)
-            .attr("fill", "currentColor")
-            .attr("text-anchor", "end")
-            .text(xLabel));
 
+    function zoom(svg) {
+      const extent = [[marginLeft, marginTop], [width - marginRight, height - marginTop]];
+    
+      svg.call(d3.zoom()
+          .scaleExtent([1, 8])
+          .translateExtent(extent)
+          .extent(extent)
+          .on("zoom", zoomed));
+
+      // deactivate pan 
+      svg.on("mousedown.zoom", null)
+    
+      function zoomed(event) {
+        console.log('1',xRange);
+        xRange = [marginLeft, width - marginRight].map(d => event.transform.applyX(d));
+        console.log('2',xRange);
+        console.log(svg.selectAll(".x-axis"))
+        antinorm = d3.scaleLinear().domain([xRange[0],xRange[1]]).range([xDomain[0],xDomain[1]])
+        xScale = xType(xDomain, xRange);
+        svg.selectAll(".bars rect").attr("x", d =>xScale(d.x0) + insetLeft).attr("width", 
+        d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight));
+        svg.selectAll(".x-axis").call(xAxis);
+      }
+    }
+    zoom(svg);
     
   
     function brushed({selection}) {
+
       
       if (selection) {
         svg.property('highlightRange',{low:antinorm(selection[0]),
@@ -146,12 +178,16 @@ function Histogram(data,prev, {
     }
   
     function brushended({selection}) {
+
       if (!selection) {
         // rects.style('pointer-events', null)
         gb.call(brush.move, defaultSelection);
         svg.property('highlightRange',0).dispatch('highlightRange');
       }
     }
+
+    // add pan event button
+    
 
     return svg.node();
   }

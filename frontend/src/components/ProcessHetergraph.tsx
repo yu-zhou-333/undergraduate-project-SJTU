@@ -5,7 +5,7 @@ export class ProcessHetergraph
     edges:any = [];
     nfeatures:any = [];
     nfeatures_map:any = [];
-    mapp:any = [];
+    mapp:any = []; //key : NodeType + local id ; value : global id
     edgemask_type:any = [];
     graph_name:string = 'None';
     constructor(g:any)
@@ -31,7 +31,7 @@ export class ProcessHetergraph
                 {
                     feas[fea_k] = g['features'][k][fea_k][i]
                 }
-                this.nodes.push({id:cnt,ntype:k,localid:i,features:feas});
+                this.nodes[cnt]={id:cnt,ntype:k,localid:i,features:feas};
                 cnt+=1;
             }
         }

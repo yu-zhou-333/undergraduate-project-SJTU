@@ -7,11 +7,11 @@ from pca import PCA
 def get_Datasets():
     '''Load dgl datasets'''
     g1 = getDataset(CoraGraphDataset())
-    # g2 = getDataset(CiteseerGraphDataset())
+    g2 = getDataset(CiteseerGraphDataset())
 
     res1 = dgl2dict(g1,'cora')
-    # res2 = dgl2dict(g2,'citeseer')
-    return [res1]
+    res2 = dgl2dict(g2,'citeseer')
+    return [res1,res2]
 
 def getDataset(dataset):
     '''Get one dataset from dgl'''
@@ -26,6 +26,7 @@ def getDataset(dataset):
     # get labels
     label = g.ndata['label']
     g = add_PCA(g)
+    g = InitialSample_BFS(g)
     return g
 
 def add_PCA(g,nodeType='_N'):
