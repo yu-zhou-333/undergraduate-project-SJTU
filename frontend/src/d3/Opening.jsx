@@ -31,10 +31,14 @@ export default function OpeningGraphs(
     {
         nodeID, // specify node by id
         Hop, // hop for the node
+        
+    }={},
+    {
+        nidButton, // selection of nodeid button
+        hopButton, // selection of hop button
     }={},
 )
 {
-    const graph = {nodes,links}
     var fdg_nodes = nodes;
     var fdg_links = links;
     var fdg,hist;
@@ -102,7 +106,6 @@ export default function OpeningGraphs(
             console.log(hist.highlightRange);
             let g = SelectNodesByNFeature(hist.highlightRange.low,hist.highlightRange.high);
             drawFDG();
-            console.log('ggggg',g);
             // fdg.updateEdge(hist.highlightRange)
         })
 
@@ -131,15 +134,17 @@ export default function OpeningGraphs(
         // When FDG is selected, update fdg
         d3.select(fdg).on('CenterNode',()=>{
             nid = fdg.CenterNode.centernode;
+
+            // update nid outside
+            console.log('changeNodeID')
+            nidButton.property("value",nid);
             highlight_fdg_nodes = fdg.CenterNode.highlightlist
             fdg_nodes = SelectNodesByID_BFS();
-            console.log('bfs nodes',fdg_nodes)
             fdg_links = SelectEdgesByNodes(fdg_nodes,links);
             drawFDG();
         })
 
         d3.select(fdg).on('HighlightNodes',()=>{
-            console.log('highligh nodes',fdg.HighlightNodes)
             highlight_fdg_nodes = fdg.HighlightNodes
         })
         prevFDG.selectAll('svg').style("border","solid 1px #2196f3");

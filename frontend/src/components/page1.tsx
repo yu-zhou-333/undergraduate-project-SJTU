@@ -165,7 +165,8 @@ export default class Page1 extends React.Component <IProps,IState>
         const windowWidth = document.body.clientWidth
         const windowHeight = window.innerHeight
         let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,bins:bins,hist_label:this.state.selected_graph_nfeature,
-        width:windowWidth,height:windowHeight},{Display_label:DisplayLabel})
+        width:windowWidth,height:windowHeight},{Display_label:DisplayLabel},undefined,
+        {nidButton:d3.select("body").select("#nidButton"),hopButton:d3.select("body").select("#hopButton")})
         painter.drawGraph();
         painter.update_hop(this.state.Hop);
         return painter;
@@ -286,53 +287,56 @@ export default class Page1 extends React.Component <IProps,IState>
             </Grid>
             <h1>{this.state.upload_graph}</h1>
 
-            <Grid item container id='Grapharea' xs={12} spacing={1}>
-                <Grid item className="graphs" container id='Fdg' xs={12}>
-                <Grid item container id='FDGControl' xs = {6} spacing={2}>
-                    <Grid item xs={3}>
+            <Grid item container id='FDGControl' xs = {6} spacing={2}>
+                <Grid item xs={3}>
                     <InputLabel id='select-helper-label'>NodeID</InputLabel>
-                        <Input
-                            value={this.state.NodeID}
-                            size="small"
-                            onChange={(e)=>{
-                                this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true});
-                                let painter = this.state.graph_painter;
-                                painter.update_nid(Number(e.target.value));
-                                painter.update_fdgnodes();
-                                painter.drawFDG();
-                            }}
-                            onBlur={this.handleBlur_NodeID}
-                            inputProps={{
-                            step: 1,
-                            min: 0,
-                            type: 'number',
-                            'aria-labelledby': 'bin-input-slider',
-                            }}
-                        />
-                    </Grid>
-                    <Grid item xs={3}>
-                    <InputLabel id='select-helper-label'>Hop</InputLabel>
                     <Input
-                        value={this.state.Hop}
+                        value={this.state.NodeID}
                         size="small"
+                        id = "nidButton"
                         onChange={(e)=>{
-                            this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true})
+                            this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true});
                             let painter = this.state.graph_painter;
-                            painter.update_hop(Number(e.target.value));
+                            painter.update_nid(Number(e.target.value));
                             painter.update_fdgnodes();
                             painter.drawFDG();
                         }}
-                        onBlur={this.handleBlur_Hop}
+                        onBlur={this.handleBlur_NodeID}
                         inputProps={{
                         step: 1,
                         min: 0,
-                        max: 10,
                         type: 'number',
                         'aria-labelledby': 'bin-input-slider',
                         }}
                     />
-                    </Grid>
                 </Grid>
+                <Grid item xs={3}>
+                <InputLabel id='select-helper-label'>Hop</InputLabel>
+                <Input
+                    value={this.state.Hop}
+                    size="small"
+                    id = "hopButton"
+                    onChange={(e)=>{
+                        this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true})
+                        let painter = this.state.graph_painter;
+                        painter.update_hop(Number(e.target.value));
+                        painter.update_fdgnodes();
+                        painter.drawFDG();
+                    }}
+                    onBlur={this.handleBlur_Hop}
+                    inputProps={{
+                    step: 1,
+                    min: 0,
+                    max: 10,
+                    type: 'number',
+                    'aria-labelledby': 'bin-input-slider',
+                    }}
+                />
+                </Grid>
+            </Grid>
+
+            <Grid item container id='Grapharea' xs={12} spacing={1}>
+                <Grid item className="graphs" container id='Fdg' xs={12}>
                 
                 </Grid>
                 <Grid item className="graphs" container id='Bar' xs={12}></Grid>
