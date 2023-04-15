@@ -17,6 +17,8 @@ export function ForceGraph(prev,
     nodeStrokeWidth = 1.5, // node stroke width, in pixels
     nodeStrokeOpacity = 1, // node stroke opacity
     nodeRadius = 5, // node radius, in pixels
+    CenterNodeId = null,
+    CenterNodeFill = '#00a152',
 
     linkSource = ({source}) => source, // given d in links, returns a node identifier string
     linkTarget = ({target}) => target, // given d in links, returns a node identifier string
@@ -141,8 +143,7 @@ export function ForceGraph(prev,
                             .attr("d", "M0,-5L10,0L0,5");
                      
     
-     
-
+    
     const link = svg.append("g")
         .attr("stroke-width", typeof linkStrokeWidth !== "function" ? linkStrokeWidth : null)
         .attr("stroke-linecap", linkStrokeLinecap)
@@ -151,12 +152,10 @@ export function ForceGraph(prev,
       .join("line")
       .attr("id",d=>'link-'+d.index)
       .attr("stroke-opacity", d=>normalize_EGM(d.edgemask))   
-      .attr("stroke", d=>d.type? linkColor(linkTypes[1]) : linkColor(linkTypes[0]))  
-      .attr("marker-end", d =>  d.type ?`url(${new URL(`#arrow-${linkTypes[1]}`, location)})`: null);
+      .attr("stroke",linkColor(linkTypes[0]))  
+      .attr("marker-end", d =>  d.type ?`url(${new URL(`#arrow-${linkTypes[0]}`, location)})`: null);
   
     const node = svg.append("g")
-        
-        .attr("stroke", nodeStroke)
         .attr("stroke-opacity", nodeStrokeOpacity)
         .attr("stroke-width", nodeStrokeWidth)
         .property("CenterNode",CenterNode)
@@ -164,35 +163,47 @@ export function ForceGraph(prev,
       .selectAll("circle")
       .data(nodes)
       .join("circle")
-      .attr("fill",d => HighlightNodes.includes(d.id) ? HighlightNodeFill : nodeFill)
-        .attr("r",d => HighlightNodes.includes(d.id) ? nodeRadius*2 : nodeRadius)
+      .attr("stroke", d=>HighlightNodes.includes(d.id)&&CenterNodeId===d.id ? HighlightNodeFill : nodeStroke)
+      .attr("fill",d => {
+        if(d.id===CenterNodeId) return CenterNodeFill;
+        else return HighlightNodes.includes(d.id) ? HighlightNodeFill : nodeFill
+      })
+        .attr("r",d => HighlightNodes.includes(d.id)||d.id===CenterNodeId ? nodeRadius*2 : nodeRadius)
         .call(drag(simulation))
         .on('mouseenter',function (e,d) {
-          // set the current node to highlight and let others know
+          // highlight current node
           d3.select(this).attr('r',nodeRadius*2)
                           .attr('fill',HighlightNodeFill)
                           .style('cursor', 'pointer')
+          svg.select('#ntext'+d.id+'.label').attr('visibility', 'visible');
         })
-        .on('mouseleave',function (e,d) { 
-          if (!HighlightNodes.includes(d.id))
+        .on('mouseleave',function (e,d) {
+          if(CenterNodeId===d.id){
+            d3.select(this).attr('r',nodeRadius*2)
+                            .attr('fill',CenterNodeFill)
+          } 
+          else if (!HighlightNodes.includes(d.id))
           {// if the node is not in highlight list, dehighlight it
             d3.select(this).attr('r',nodeRadius)
                           .attr('fill',nodeFill)
                           .style('cursor','default')
-                        }
+            svg.select('#ntext'+d.id+'.label').attr('visibility', 'hidden');
+          }
         })
         .on('click',function (e,d){
           //single click to highlight/dehighlight the node
           if(HighlightNodes.includes(d.id)){
             HighlightNodes =  HighlightNodes.filter(e=>e!==d.id);
-            d3.select(this).attr('r',nodeRadius)
-                          .attr('fill',nodeFill)
+            if(CenterNodeId===d.id)d3.select(this).attr('stroke',nodeStroke);
             svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
           }
           else{
             HighlightNodes.push(d.id);
-            d3.select(this).attr('r',nodeRadius*2)
-                            .attr('fill',HighlightNodeFill)
+            if(CenterNodeId===d.id){
+              d3.select(this).attr('r',nodeRadius*2)
+                              .attr('fill',CenterNodeFill)
+                              .attr('stroke',HighlightNodeFill);
+            }
             svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
           }
         })
@@ -212,11 +223,12 @@ export function ForceGraph(prev,
                           .enter().append("text")
                           .attr("x", 8)
                           .attr("y", "0.31em")
+                          .attr("id",d=>'ntext'+d.id)
                           .attr("class", "label")
                           .attr("fill", "black")
                           .attr("stroke", "black")
                           .attr("stroke-width", 1)
-                          .attr("visibility","hidden")
+                          .attr("visibility",d=>HighlightNodes.includes(d.id)||CenterNodeId===d.id ? "visible" : "hidden")
                           .style('pointer-events', 'none') // 禁止鼠标事件
                           .text(({index: i}) => T[i]);
     

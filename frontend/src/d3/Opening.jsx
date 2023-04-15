@@ -35,12 +35,12 @@ export default function OpeningGraphs(
 )
 {
     const graph = {nodes,links}
-    let fdg_nodes = nodes;
-    let fdg_links = links;
+    var fdg_nodes = nodes;
+    var fdg_links = links;
     var fdg,hist;
-    let nid = nodeID;
-    let hop = Hop;
-    let highlight_fdg_nodes = [];
+    var nid = nodeID;
+    var hop = Hop;
+    var highlight_fdg_nodes = [];
     
 
     if (nid !== undefined) {
@@ -55,17 +55,16 @@ export default function OpeningGraphs(
     // console.log(fdg_nodes,fdg_links)
 
     function SelectNodesByID_BFS(){
-        // console.log('nid',nid);
-        // console.log('hop',hop);
+        console.log('niddd',nid);
+        console.log('hoppp',hop);
         let list = [{node:nodes[nid],hop:0}],selected_list = [];
         let current,current_hop=0;
         while (list.length!==0){
             current = list.pop();
-            selected_list.push(current.node);
+            if(!selected_list.includes(current.node))selected_list.push(current.node);
             current_hop = current.hop;
             for(let k in links){
-                if (links[k].source === current.node.id && !selected_list.includes(nodes[links[k].target])){
-                    
+                if (links[k].source === current.node.id){
                     if (current_hop>=hop) continue;
                     list.push({
                         node:nodes[links[k].target],
@@ -74,7 +73,6 @@ export default function OpeningGraphs(
                 }
             }
         }
-        console.log('selected_list',selected_list);
         return selected_list;
     }
 
@@ -104,6 +102,7 @@ export default function OpeningGraphs(
             console.log(hist.highlightRange);
             let g = SelectNodesByNFeature(hist.highlightRange.low,hist.highlightRange.high);
             drawFDG();
+            console.log('ggggg',g);
             // fdg.updateEdge(hist.highlightRange)
         })
 
@@ -115,6 +114,8 @@ export default function OpeningGraphs(
     }
 
     function drawFDG(){
+        console.log('nid',nid);
+        console.log('hop',hop);
         cleanFDG();
         fdg = ForceGraph(prevFDG,{nodes:fdg_nodes,links:fdg_links},{
             nodeFill:'#2196f3',
@@ -123,6 +124,7 @@ export default function OpeningGraphs(
             width:width,
             height:height/2,
             HighlightNodes:highlight_fdg_nodes,
+            CenterNodeId:nid,
             linktype: d=>1
         })
 
