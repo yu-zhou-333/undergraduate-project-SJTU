@@ -20,7 +20,6 @@ export default function OpeningGraphs(
     },
     {
         nfeature, // method to display in his
-        bins, // approximate number of bins
         hist_label, // label for histogram
         width, // the width of the window
         height // the height of the window
@@ -45,6 +44,8 @@ export default function OpeningGraphs(
     var nid = nodeID;
     var hop = Hop;
     var highlight_fdg_nodes = [];
+    var group = undefined;
+
     
 
     if (nid !== undefined) {
@@ -59,8 +60,8 @@ export default function OpeningGraphs(
     // console.log(fdg_nodes,fdg_links)
 
     function SelectNodesByID_BFS(){
-        console.log('niddd',nid);
-        console.log('hoppp',hop);
+        // console.log('niddd',nid);
+        // console.log('hoppp',hop);
         let list = [{node:nodes[nid],hop:0}],selected_list = [];
         let current,current_hop=0;
         while (list.length!==0){
@@ -89,9 +90,30 @@ export default function OpeningGraphs(
         }
     }
     
-    function drawGraph(){
-        drawFDG()
-    
+    function drawGraph(
+        new_nid=undefined,
+        new_hop=undefined,
+        new_highlight_fdg_nodes=undefined,
+        new_bins=undefined,
+        new_group=undefined,){
+        if(new_highlight_fdg_nodes!==undefined) highlight_fdg_nodes=new_highlight_fdg_nodes;
+        console.log("drawGraph highNOdes",highlight_fdg_nodes);
+        if(new_group!==undefined)group=new_group;
+        drawFDG(new_nid,new_hop)
+        drawHis(new_bins)
+    }
+
+    function cleanHist(){
+        prevHis.selectAll('svg').remove();
+    }
+
+    function cleanFDG(){
+        prevFDG.selectAll("svg").remove();
+    }
+
+    function drawHis(bins){
+        console.log('bins',bins);
+        cleanHist();
         hist = Histogram(nodes,prevHis,{
             value: d=>d.features[nfeature],
             thresholds: bins,
@@ -103,8 +125,8 @@ export default function OpeningGraphs(
 
         //When histogram is selected, update fdg
         d3.select(hist).on('highlightRange',()=>{
-            console.log(hist.highlightRange);
-            let g = SelectNodesByNFeature(hist.highlightRange.low,hist.highlightRange.high);
+            nid = undefined;
+            SelectNodesByNFeature(hist.highlightRange.low,hist.highlightRange.high);
             drawFDG();
             // fdg.updateEdge(hist.highlightRange)
         })
@@ -112,13 +134,14 @@ export default function OpeningGraphs(
         prevHis.selectAll('svg').style("border","solid 1px #2196f3")
     }
 
-    function cleanFDG(){
-        prevFDG.selectAll("svg").remove();
-    }
-
-    function drawFDG(){
-        console.log('nid',nid);
-        console.log('hop',hop);
+    function drawFDG(new_nid=undefined,new_hop=undefined){
+        // console.log("drawFDG highNOdes",highlight_fdg_nodes);
+        console.log('drawFDG group',group);
+        if(new_nid!==undefined)nid = new_nid;
+        if(new_hop!==undefined)hop = new_hop;
+        if(new_nid!==undefined||new_hop!==undefined)update_fdgnodes();
+        // console.log('nid',nid);
+        // console.log('hop',hop);
         cleanFDG();
         fdg = ForceGraph(prevFDG,{nodes:fdg_nodes,links:fdg_links},{
             nodeFill:'#2196f3',
@@ -128,24 +151,45 @@ export default function OpeningGraphs(
             height:height/2,
             HighlightNodes:highlight_fdg_nodes,
             CenterNodeId:nid,
-            linktype: d=>1
+            linkStroke:d=>"#999",
+            nodeGroup: d=>d.features[group],
+            // linktype: d=>1
         })
 
-        // When FDG is selected, update fdg
+        // When Center Node is selected, update fdg
         d3.select(fdg).on('CenterNode',()=>{
             nid = fdg.CenterNode.centernode;
+            highlight_fdg_nodes = fdg.CenterNode.highlightlist
 
             // update nid outside
             console.log('changeNodeID')
-            nidButton.property("value",nid);
-            highlight_fdg_nodes = fdg.CenterNode.highlightlist
+            nidButton.dispatch('updateValue',{
+                detail:{
+                    nid:nid,
+                    hop:hop,
+                    highlight_fdg_nodes:highlight_fdg_nodes
+                }
+            });
+            
             fdg_nodes = SelectNodesByID_BFS();
             fdg_links = SelectEdgesByNodes(fdg_nodes,links);
             drawFDG();
+            // redraw hist to update hist events
+            d3.select(hist).on('highlightRange',()=>{
+                nid = undefined;
+                SelectNodesByNFeature(hist.highlightRange.low,hist.highlightRange.high);
+                drawFDG();
+                // fdg.updateEdge(hist.highlightRange)
+            })
         })
 
         d3.select(fdg).on('HighlightNodes',()=>{
-            highlight_fdg_nodes = fdg.HighlightNodes
+            highlight_fdg_nodes = fdg.HighlightNodes;
+            prevFDG.dispatch("updateHighlightFDGNodes",{
+                detail:{
+                    nodes:highlight_fdg_nodes
+                }
+            })
         })
         prevFDG.selectAll('svg').style("border","solid 1px #2196f3");
     }
@@ -169,7 +213,8 @@ export default function OpeningGraphs(
         update_hop: update_hop,
         update_nid : update_nid,
         update_fdgnodes : update_fdgnodes,
-        drawFDG : drawFDG
+        drawFDG : drawFDG,
+        drawHis : drawHis,
     })
 
 }

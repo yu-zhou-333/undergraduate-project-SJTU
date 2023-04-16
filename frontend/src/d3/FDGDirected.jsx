@@ -18,7 +18,7 @@ export function ForceGraph(prev,
     nodeStrokeOpacity = 1, // node stroke opacity
     nodeRadius = 5, // node radius, in pixels
     CenterNodeId = null,
-    CenterNodeFill = '#00a152',
+    CenterNodeFill = '#00352c',
 
     linkSource = ({source}) => source, // given d in links, returns a node identifier string
     linkTarget = ({target}) => target, // given d in links, returns a node identifier string
@@ -40,7 +40,7 @@ export function ForceGraph(prev,
     } = {}
   ) {
     // Compute values.
-    // console.log('Ingraphnodes',nodes)
+    console.log('GG',nodes.map(nodeGroup),nodeGroup)
     const N = d3.map(nodes, nodeId).map(intern);
     const LS = d3.map(links, linkSource).map(intern);
     const LT = d3.map(links, linkTarget).map(intern);
@@ -64,6 +64,7 @@ export function ForceGraph(prev,
   
     // Compute default domains.
     if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
+    console.log("GGGGGGG",G)
   
     // Construct the scales.
     const color = nodeGroup == null ? null : d3.scaleOrdinal(nodeGroups, colors);
@@ -163,47 +164,44 @@ export function ForceGraph(prev,
       .selectAll("circle")
       .data(nodes)
       .join("circle")
-      .attr("stroke", d=>HighlightNodes.includes(d.id)&&CenterNodeId===d.id ? HighlightNodeFill : nodeStroke)
-      .attr("fill",d => {
-        if(d.id===CenterNodeId) return CenterNodeFill;
-        else return HighlightNodes.includes(d.id) ? HighlightNodeFill : nodeFill
-      })
+      .attr("stroke", d=>{
+        if(HighlightNodes.includes(d.id)) return HighlightNodeFill;
+        else if (CenterNodeId===d.id) return CenterNodeFill;
+        return nodeStroke
+        })
+      .attr("fill", nodeFill)
         .attr("r",d => HighlightNodes.includes(d.id)||d.id===CenterNodeId ? nodeRadius*2 : nodeRadius)
         .call(drag(simulation))
         .on('mouseenter',function (e,d) {
           // highlight current node
           d3.select(this).attr('r',nodeRadius*2)
-                          .attr('fill',HighlightNodeFill)
+                          .attr('stroke',HighlightNodeFill)
                           .style('cursor', 'pointer')
           svg.select('#ntext'+d.id+'.label').attr('visibility', 'visible');
         })
         .on('mouseleave',function (e,d) {
-          if(CenterNodeId===d.id){
-            d3.select(this).attr('r',nodeRadius*2)
-                            .attr('fill',CenterNodeFill)
-          } 
-          else if (!HighlightNodes.includes(d.id))
+          if (!HighlightNodes.includes(d.id))
           {// if the node is not in highlight list, dehighlight it
             d3.select(this).attr('r',nodeRadius)
-                          .attr('fill',nodeFill)
+                          .attr('stroke',nodeStroke)
                           .style('cursor','default')
             svg.select('#ntext'+d.id+'.label').attr('visibility', 'hidden');
+            if(CenterNodeId===d.id){
+              d3.select(this).attr('r',nodeRadius*2)
+                              .attr('stroke',CenterNodeFill)
+              svg.select('#ntext'+d.id+'.label').attr('visibility', 'visible');
+            } 
           }
         })
         .on('click',function (e,d){
           //single click to highlight/dehighlight the node
           if(HighlightNodes.includes(d.id)){
             HighlightNodes =  HighlightNodes.filter(e=>e!==d.id);
-            if(CenterNodeId===d.id)d3.select(this).attr('stroke',nodeStroke);
+            if(CenterNodeId===d.id)d3.select(this).attr('stroke',CenterNodeFill);
             svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
           }
           else{
-            HighlightNodes.push(d.id);
-            if(CenterNodeId===d.id){
-              d3.select(this).attr('r',nodeRadius*2)
-                              .attr('fill',CenterNodeFill)
-                              .attr('stroke',HighlightNodeFill);
-            }
+            HighlightNodes.push(d.id);            
             svg.property('HighlightNodes',HighlightNodes).dispatch('HighlightNodes');
           }
         })

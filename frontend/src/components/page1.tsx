@@ -20,14 +20,17 @@ export interface IState {
     graph_names : string[],
     graphs : any,
     upload_graph : string,
-    node_feature: string,
     selected_graph_features : string[],
     selected_graph_nfeature: string,
+    edge_features : string[],
+    selected_edge_features : string,
+    selected_graph_group:string,
     bins : any,
     IsGraphDisplayed : boolean,
     NodeID : number,
     Hop : number,
-    graph_painter : any
+    graph_painter : any,
+    highlight_fdg_nodes : any
 }
 
 export default class Page1 extends React.Component <IProps,IState>
@@ -40,14 +43,17 @@ export default class Page1 extends React.Component <IProps,IState>
             graph_names:[],
             graphs : {},
             bins : 2,
-            node_feature : '',
             upload_graph : 'None',
             selected_graph_features : [],
             selected_graph_nfeature : '',
+            edge_features : [],
+            selected_edge_features : '',
+            selected_graph_group : '',
             IsGraphDisplayed : false,
             NodeID : 0,
             Hop : 3,
-            graph_painter : undefined
+            graph_painter : undefined,
+            highlight_fdg_nodes : [],
         }
     }
     async getInitDatasets(){
@@ -106,7 +112,7 @@ export default class Page1 extends React.Component <IProps,IState>
         let graph_features = this.state.graphs[String(e.target.value)].nfeatures
         console.log('graph features',graph_features)
         this.setState({...this.state,selected_dataset: String(e.target.value),selected_graph_features:graph_features,
-        selected_graph_nfeature:''})
+        selected_graph_nfeature:'',selected_graph_group:'',highlight_fdg_nodes:[]})
     }
 
     handleSelectNfeature = (e:any) => {
@@ -119,6 +125,20 @@ export default class Page1 extends React.Component <IProps,IState>
         let nfeature = g.nfeatures_map[String(e.target.value)]
         let painter = this.drawOpening(data,nfeature,0,'InitialSample')
         this.setState({...this.state,selected_graph_nfeature:String(e.target.value),
+            IsGraphDisplayed:true,graph_painter:painter})
+    }
+
+    handleSelectNgroup = (e:any) => {
+        let g = this.state.graphs[this.state.selected_dataset]
+        let data = {
+            nodes : g.nodes,
+            links : g.edges
+        }
+        let nfeature = g.nfeatures_map[String(e.target.value)]
+        let painter = this.state.graph_painter;
+        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
+        this.state.bins,nfeature);
+        this.setState({...this.state,selected_graph_group:String(e.target.value),
             IsGraphDisplayed:true,graph_painter:painter})
     }
 
@@ -160,14 +180,27 @@ export default class Page1 extends React.Component <IProps,IState>
 
         const prev = d3.select("body").select('#Grapharea')
         const prevBar = prev.select("#Bar");
-        const prevFdg = prev.select("#Fdg");
+        const prevFdg = prev.select("#Fdg")
+                                .on('updateHighlightFDGNodes',(d:any)=>{
+                                    let info = d.detail;
+                                    this.setState({...this.state,highlight_fdg_nodes:info.nodes})
+                                });
         prev.selectAll("svg").remove();
         const windowWidth = document.body.clientWidth
         const windowHeight = window.innerHeight
-        let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,bins:bins,hist_label:this.state.selected_graph_nfeature,
+
+        let nidButton = d3.select("body").select("#nidButton")
+                            .on("updateValue",(d:any)=>{
+                                let info = d.detail;
+                                this.setState({...this.state,NodeID:info.nid,Hop:info.hop})
+                            });
+        let hopButton = d3.select("body").select("#hopButton");
+
+        let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,hist_label:this.state.selected_graph_nfeature,
         width:windowWidth,height:windowHeight},{Display_label:DisplayLabel},undefined,
-        {nidButton:d3.select("body").select("#nidButton"),hopButton:d3.select("body").select("#hopButton")})
-        painter.drawGraph();
+        {nidButton:nidButton,hopButton:hopButton})
+        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins,
+            g.nfeatures_map[this.state.selected_graph_group]);
         painter.update_hop(this.state.Hop);
         return painter;
     }
@@ -188,7 +221,7 @@ export default class Page1 extends React.Component <IProps,IState>
     render (){
         return(
            <Grid container spacing={3}>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
                 <InputLabel id='select-helper-label'>Datasets</InputLabel>
                 <Select
@@ -211,9 +244,9 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
-            <Grid item xs={3}>
+            <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
-                <InputLabel id='select-helper-label'>Features</InputLabel>
+                <InputLabel id='select-helper-label'>NFeatures</InputLabel>
                 <Select
                 labelId="select-helper-label"
                 label="Features"
@@ -234,6 +267,53 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
+            <Grid item xs={2}>
+                <FormControl sx={{ m: 1 ,minWidth:160}}>
+                <InputLabel id='select-helper-label'>Groups</InputLabel>
+                <Select
+                labelId="select-helper-label"
+                label="Groups"
+                value={this.state.selected_graph_group}
+                autoWidth
+                onChange={(e)=>{
+                    this.handleSelectNgroup(e)
+                }}
+                >
+                <MenuItem value='None'>
+                    <em>None</em>
+                </MenuItem>
+                {
+                    this.state.selected_graph_features.map((method:any)=>
+                    <MenuItem value={method} key={method}>{method}</MenuItem>
+                    )
+                }
+                </Select>
+                </FormControl>
+            </Grid>
+            <Grid item xs={2}>
+                <FormControl sx={{ m: 1 ,minWidth:160}}>
+                <InputLabel id='select-helper-label'>EFeatures</InputLabel>
+                <Select
+                labelId="select-helper-label"
+                label="Groups"
+                value={this.state.selected_graph_group}
+                autoWidth
+                onChange={(e)=>{
+                    this.handleSelectNgroup(e)
+                }}
+                >
+                <MenuItem value='None'>
+                    <em>None</em>
+                </MenuItem>
+                {
+                    this.state.selected_graph_features.map((method:any)=>
+                    <MenuItem value={method} key={method}>{method}</MenuItem>
+                    )
+                }
+                </Select>
+                </FormControl>
+            </Grid>
+
 
             <Grid container item xs={3}  spacing={1}>
                 <Grid item xs={12}>
@@ -247,8 +327,9 @@ export default class Page1 extends React.Component <IProps,IState>
                     onChange={(e:Event,newValue:number|number[])=>{
                         if (this.state.selected_graph_nfeature!=='')
                         {
-                            this.setState({...this.state,bins:newValue,IsGraphDisplayed:true});
-                            this.drawOpening(0,'',newValue,'InitialSample')
+                            let painter = this.drawOpening(0,'',newValue,'InitialSample')
+                            this.setState({...this.state,bins:newValue,IsGraphDisplayed:true,NodeID:0,
+                            graph_painter:painter});
                         }
                     }}
                     max = {1000}
@@ -263,8 +344,9 @@ export default class Page1 extends React.Component <IProps,IState>
                     onChange={(e)=>{
                         if (this.state.selected_graph_nfeature!=='')
                         {
-                            this.setState({...this.state,bins:Number(e.target.value),IsGraphDisplayed:true})
-                            this.drawOpening(0,'',Number(e.target.value),'InitialSample')
+                            let painter = this.drawOpening(0,'',Number(e.target.value),'InitialSample');
+                            this.setState({...this.state,bins:Number(e.target.value),IsGraphDisplayed:true,
+                                NodeID:0,graph_painter:painter})
                         }
                     }}
                     onBlur={this.handleBlur}
@@ -294,19 +376,23 @@ export default class Page1 extends React.Component <IProps,IState>
                         value={this.state.NodeID}
                         size="small"
                         id = "nidButton"
+                        
                         onChange={(e)=>{
-                            this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true});
+                            console.log("nid input value changed");
+                            let g = this.state.graphs[this.state.selected_dataset];
                             let painter = this.state.graph_painter;
-                            painter.update_nid(Number(e.target.value));
-                            painter.update_fdgnodes();
-                            painter.drawFDG();
+                            // painter.update_nid(Number(e.target.value));
+                            // painter.update_fdgnodes();
+                            painter.drawGraph(Number(e.target.value),this.state.Hop,this.state.highlight_fdg_nodes,
+                            this.state.bins,g.nfeatures_map[this.state.selected_graph_group]);
+                            this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true,
+                            graph_painter:painter});
                         }}
                         onBlur={this.handleBlur_NodeID}
                         inputProps={{
                         step: 1,
                         min: 0,
                         type: 'number',
-                        'aria-labelledby': 'bin-input-slider',
                         }}
                     />
                 </Grid>
@@ -317,11 +403,14 @@ export default class Page1 extends React.Component <IProps,IState>
                     size="small"
                     id = "hopButton"
                     onChange={(e)=>{
-                        this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true})
                         let painter = this.state.graph_painter;
-                        painter.update_hop(Number(e.target.value));
-                        painter.update_fdgnodes();
-                        painter.drawFDG();
+                        let g = this.state.graphs[this.state.selected_dataset];
+                        // painter.update_hop(Number(e.target.value));
+                        // painter.update_fdgnodes();
+                        painter.drawGraph(this.state.NodeID,Number(e.target.value),this.state.highlight_fdg_nodes,
+                        this.state.bins,g.nfeatures_map[this.state.selected_graph_group]);
+                        this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true,
+                        graph_painter:painter})
                     }}
                     onBlur={this.handleBlur_Hop}
                     inputProps={{
@@ -329,7 +418,6 @@ export default class Page1 extends React.Component <IProps,IState>
                     min: 0,
                     max: 10,
                     type: 'number',
-                    'aria-labelledby': 'bin-input-slider',
                     }}
                 />
                 </Grid>
