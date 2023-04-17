@@ -23,8 +23,8 @@ export function ForceGraph(prev,
     linkSource = ({source}) => source, // given d in links, returns a node identifier string
     linkTarget = ({target}) => target, // given d in links, returns a node identifier string
     linkStroke = "#999", // link stroke color
-    linkStrokeOpacity = 0.6, // link stroke opacity
-    linkStrokeWidth = 1.2, // given d in links, returns a stroke width in pixels
+    linkStrokeOpacity = d=>0.6, // link stroke opacity,can be a function
+    linkStrokeWidth = d=>1.2, // given d in links, returns a stroke width in pixels
     linkStrokeLinecap = "round", // link stroke linecap
     linkTypes=[1,2,3,4], // list of types of edge
     edgemask = d=>1, // function of edge mask
@@ -40,7 +40,6 @@ export function ForceGraph(prev,
     } = {}
   ) {
     // Compute values.
-    console.log('GG',nodes.map(nodeGroup),nodeGroup)
     const N = d3.map(nodes, nodeId).map(intern);
     const LS = d3.map(links, linkSource).map(intern);
     const LT = d3.map(links, linkTarget).map(intern);
@@ -49,6 +48,12 @@ export function ForceGraph(prev,
     const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
     const W = typeof linkStrokeWidth !== "function" ? null : d3.map(links, linkStrokeWidth);
     const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
+    var LSO = typeof linkStrokeOpacity !== "function" ? null : d3.map(links,linkStrokeOpacity)
+    if(LSO){
+      const normalize_LSO = d3.scaleLinear().domain([d3.min(LSO),d3.max(LSO)]).range([0,1]);
+      LSO = LSO.map(d=>normalize_LSO(d));
+      console.log('lso',LSO,W);
+    } 
     const CenterNode = []
     var transform = d3.zoomIdentity;
     
@@ -64,7 +69,6 @@ export function ForceGraph(prev,
   
     // Compute default domains.
     if (G && nodeGroups === undefined) nodeGroups = d3.sort(G);
-    console.log("GGGGGGG",G)
   
     // Construct the scales.
     const color = nodeGroup == null ? null : d3.scaleOrdinal(nodeGroups, colors);
@@ -216,6 +220,7 @@ export function ForceGraph(prev,
     if (L) link.attr("stroke", ({index: i}) => L[i]);
     if (G) node.attr("fill", ({index: i}) => color(G[i]));
     if (T) node.append("title").text(({index: i}) => T[i]);
+    if (LSO) link.attr("stroke-opacity",({index: i}) => LSO[i]);
     const nodesText = svg.selectAll("text.label")
                           .data(nodes)
                           .enter().append("text")

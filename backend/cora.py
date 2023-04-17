@@ -5,18 +5,13 @@ import dgl
 import torch
 import json
 
-
-
-
-# g = getDataset(CoraGraphDataset())
+g = getDataset(CoraGraphDataset())
 
 # dgl.save_graphs('cora2.bin',g)
 # g = dgl.load_graphs('cora2.bin')
 # g = g[0][0]
 # ret = PCA(g.ndata['feat'],1)
 # gg = add_PCA(g)
-f = open('backend\cache\cora.json')
-a = json.load(f)
-f.close()
+gg = add_random_efeature(g)
 print()
 

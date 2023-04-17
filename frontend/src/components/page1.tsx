@@ -23,7 +23,7 @@ export interface IState {
     selected_graph_features : string[],
     selected_graph_nfeature: string,
     edge_features : string[],
-    selected_edge_features : string,
+    selected_edge_feature : string,
     selected_graph_group:string,
     bins : any,
     IsGraphDisplayed : boolean,
@@ -47,11 +47,11 @@ export default class Page1 extends React.Component <IProps,IState>
             selected_graph_features : [],
             selected_graph_nfeature : '',
             edge_features : [],
-            selected_edge_features : '',
+            selected_edge_feature : '',
             selected_graph_group : '',
             IsGraphDisplayed : false,
             NodeID : 0,
-            Hop : 3,
+            Hop : 1,
             graph_painter : undefined,
             highlight_fdg_nodes : [],
         }
@@ -109,10 +109,13 @@ export default class Page1 extends React.Component <IProps,IState>
     handleSelectDatasets = (e:any) =>{
         // redraw chart after selecting specify method
         console.log(this.state.graphs[String(e.target.value)],String(e.target.value))
-        let graph_features = this.state.graphs[String(e.target.value)].nfeatures
-        console.log('graph features',graph_features)
+        let g = this.state.graphs[String(e.target.value)];
+        let graph_features = g.nfeatures;
+        let edge_features = g.edgemask_type;
+        console.log('graph features',graph_features,edge_features)
         this.setState({...this.state,selected_dataset: String(e.target.value),selected_graph_features:graph_features,
-        selected_graph_nfeature:'',selected_graph_group:'',highlight_fdg_nodes:[]})
+        edge_features:edge_features,selected_graph_nfeature:'',selected_graph_group:'',highlight_fdg_nodes:[],
+        selected_edge_feature:'',Hop:1})
     }
 
     handleSelectNfeature = (e:any) => {
@@ -125,6 +128,7 @@ export default class Page1 extends React.Component <IProps,IState>
         let nfeature = g.nfeatures_map[String(e.target.value)]
         let painter = this.drawOpening(data,nfeature,0,'InitialSample')
         this.setState({...this.state,selected_graph_nfeature:String(e.target.value),
+            selected_edge_feature:'',selected_graph_group:'',
             IsGraphDisplayed:true,graph_painter:painter})
     }
 
@@ -137,9 +141,19 @@ export default class Page1 extends React.Component <IProps,IState>
         let nfeature = g.nfeatures_map[String(e.target.value)]
         let painter = this.state.graph_painter;
         painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
-        this.state.bins,nfeature);
+        this.state.bins,nfeature,this.state.selected_edge_feature);
         this.setState({...this.state,selected_graph_group:String(e.target.value),
             IsGraphDisplayed:true,graph_painter:painter})
+    }
+
+    handleSelectEfeature = (e:any) => {
+        let g = this.state.graphs[this.state.selected_dataset]
+        let efeature = String(e.target.value)
+        let painter = this.state.graph_painter;
+        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
+        this.state.bins,g.nfeatures_map[this.state.selected_graph_group],efeature);
+        this.setState({...this.state,
+            IsGraphDisplayed:true,graph_painter:painter,selected_edge_feature:efeature})
     }
 
     handleBlur = () => {
@@ -200,7 +214,7 @@ export default class Page1 extends React.Component <IProps,IState>
         width:windowWidth,height:windowHeight},{Display_label:DisplayLabel},undefined,
         {nidButton:nidButton,hopButton:hopButton})
         painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins,
-            g.nfeatures_map[this.state.selected_graph_group]);
+            g.nfeatures_map[this.state.selected_graph_group,this.state.selected_edge_feature]);
         painter.update_hop(this.state.Hop);
         return painter;
     }
@@ -233,7 +247,7 @@ export default class Page1 extends React.Component <IProps,IState>
                     this.handleSelectDatasets(e)
                 }}
                 >
-                <MenuItem value='None'>
+                <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
                 {
@@ -256,7 +270,7 @@ export default class Page1 extends React.Component <IProps,IState>
                     this.handleSelectNfeature(e)
                 }}
                 >
-                <MenuItem value='None'>
+                <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
                 {
@@ -279,7 +293,7 @@ export default class Page1 extends React.Component <IProps,IState>
                     this.handleSelectNgroup(e)
                 }}
                 >
-                <MenuItem value='None'>
+                <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
                 {
@@ -295,18 +309,18 @@ export default class Page1 extends React.Component <IProps,IState>
                 <InputLabel id='select-helper-label'>EFeatures</InputLabel>
                 <Select
                 labelId="select-helper-label"
-                label="Groups"
-                value={this.state.selected_graph_group}
+                label="EFeatures"
+                value={this.state.selected_edge_feature}
                 autoWidth
                 onChange={(e)=>{
-                    this.handleSelectNgroup(e)
+                    this.handleSelectEfeature(e)
                 }}
                 >
-                <MenuItem value='None'>
+                <MenuItem value=''>
                     <em>None</em>
                 </MenuItem>
                 {
-                    this.state.selected_graph_features.map((method:any)=>
+                    this.state.edge_features.map((method:any)=>
                     <MenuItem value={method} key={method}>{method}</MenuItem>
                     )
                 }
@@ -328,7 +342,7 @@ export default class Page1 extends React.Component <IProps,IState>
                         if (this.state.selected_graph_nfeature!=='')
                         {
                             let painter = this.drawOpening(0,'',newValue,'InitialSample')
-                            this.setState({...this.state,bins:newValue,IsGraphDisplayed:true,NodeID:0,
+                            this.setState({...this.state,bins:newValue,IsGraphDisplayed:true,NodeID:0,Hop:1,
                             graph_painter:painter});
                         }
                     }}
@@ -346,7 +360,7 @@ export default class Page1 extends React.Component <IProps,IState>
                         {
                             let painter = this.drawOpening(0,'',Number(e.target.value),'InitialSample');
                             this.setState({...this.state,bins:Number(e.target.value),IsGraphDisplayed:true,
-                                NodeID:0,graph_painter:painter})
+                                NodeID:0,Hop:1,graph_painter:painter})
                         }
                     }}
                     onBlur={this.handleBlur}
@@ -384,7 +398,7 @@ export default class Page1 extends React.Component <IProps,IState>
                             // painter.update_nid(Number(e.target.value));
                             // painter.update_fdgnodes();
                             painter.drawGraph(Number(e.target.value),this.state.Hop,this.state.highlight_fdg_nodes,
-                            this.state.bins,g.nfeatures_map[this.state.selected_graph_group]);
+                            this.state.bins,g.nfeatures_map[this.state.selected_graph_group],this.state.selected_edge_feature);
                             this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true,
                             graph_painter:painter});
                         }}
@@ -403,13 +417,15 @@ export default class Page1 extends React.Component <IProps,IState>
                     size="small"
                     id = "hopButton"
                     onChange={(e)=>{
+                        let hop = Number(e.target.value);
+                        if(hop>10)hop=10;
                         let painter = this.state.graph_painter;
                         let g = this.state.graphs[this.state.selected_dataset];
                         // painter.update_hop(Number(e.target.value));
                         // painter.update_fdgnodes();
-                        painter.drawGraph(this.state.NodeID,Number(e.target.value),this.state.highlight_fdg_nodes,
-                        this.state.bins,g.nfeatures_map[this.state.selected_graph_group]);
-                        this.setState({...this.state,Hop:Number(e.target.value),IsGraphDisplayed:true,
+                        painter.drawGraph(this.state.NodeID,hop,this.state.highlight_fdg_nodes,
+                        this.state.bins,g.nfeatures_map[this.state.selected_graph_group],this.state.selected_edge_feature);
+                        this.setState({...this.state,Hop:hop,IsGraphDisplayed:true,
                         graph_painter:painter})
                     }}
                     onBlur={this.handleBlur_Hop}

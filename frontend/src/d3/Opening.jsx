@@ -45,6 +45,7 @@ export default function OpeningGraphs(
     var hop = Hop;
     var highlight_fdg_nodes = [];
     var group = undefined;
+    var efeature = undefined;
 
     
 
@@ -95,10 +96,12 @@ export default function OpeningGraphs(
         new_hop=undefined,
         new_highlight_fdg_nodes=undefined,
         new_bins=undefined,
-        new_group=undefined,){
+        new_group=undefined,
+        new_efeature=undefined,){
         if(new_highlight_fdg_nodes!==undefined) highlight_fdg_nodes=new_highlight_fdg_nodes;
         console.log("drawGraph highNOdes",highlight_fdg_nodes);
-        if(new_group!==undefined)group=new_group;
+        if(new_group!==undefined||new_group!=='')group=new_group;
+        if(new_efeature!==undefined||new_efeature!=='')efeature=new_efeature;
         drawFDG(new_nid,new_hop)
         drawHis(new_bins)
     }
@@ -136,7 +139,7 @@ export default function OpeningGraphs(
 
     function drawFDG(new_nid=undefined,new_hop=undefined){
         // console.log("drawFDG highNOdes",highlight_fdg_nodes);
-        console.log('drawFDG group',group);
+        console.log('drawFDGefeature',efeature);
         if(new_nid!==undefined)nid = new_nid;
         if(new_hop!==undefined)hop = new_hop;
         if(new_nid!==undefined||new_hop!==undefined)update_fdgnodes();
@@ -151,8 +154,10 @@ export default function OpeningGraphs(
             height:height/2,
             HighlightNodes:highlight_fdg_nodes,
             CenterNodeId:nid,
-            linkStroke:d=>"#999",
-            nodeGroup: d=>d.features[group],
+            linkStroke:d=>"#424242",
+            nodeTitle: group ? d=>`${d.id}\nG : ${d.features[group]}` : undefined,
+            nodeGroup: group ? d=>d.features[group] : undefined,
+            linkStrokeOpacity : efeature ? d=>d.edgemasks[efeature] : undefined
             // linktype: d=>1
         })
 
