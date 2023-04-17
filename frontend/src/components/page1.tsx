@@ -62,8 +62,8 @@ export default class Page1 extends React.Component <IProps,IState>
         {
             console.log(res['graph']);
             
-            let names = [];
-            let graphs:any = {};
+            let names = this.state.graph_names;
+            let graphs:any = this.state.graphs;
             for(let k in res['graph'])
             {
                 let g = new ProcessHetergraph(res['graph'][k]);

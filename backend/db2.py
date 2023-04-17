@@ -27,6 +27,7 @@ def getDataset(dataset):
     label = g.ndata['label']
     g = add_PCA(g)
     g = InitialSample_BFS(g)
+    g = dgl.reorder_graph(g,edge_permute_algo='src')
     return g
 
 def add_PCA(g,nodeType='_N'):

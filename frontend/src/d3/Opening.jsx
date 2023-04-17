@@ -65,19 +65,30 @@ export default function OpeningGraphs(
         // console.log('hoppp',hop);
         let list = [{node:nodes[nid],hop:0}],selected_list = [];
         let current,current_hop=0;
+        let src = links.map(d=>d.source)
         while (list.length!==0){
             current = list.pop();
             if(!selected_list.includes(current.node))selected_list.push(current.node);
             current_hop = current.hop;
-            for(let k in links){
-                if (links[k].source === current.node.id){
-                    if (current_hop>=hop) continue;
-                    list.push({
-                        node:nodes[links[k].target],
-                        hop:current_hop+1
-                    });
+            
+            let k = src.indexOf(current.node.id);
+            while(src[k]===current.node.id){
+                if (current_hop>=hop) {
+                    k++
+                    continue;
                 }
+                list.push({
+                    node:nodes[links[k].target],
+                    hop:current_hop+1
+                });
+                k++;
             }
+
+            // for(let k in links){
+            //     if (links[k].source === current.node.id){
+                    
+            //     }
+            // }
         }
         return selected_list;
     }

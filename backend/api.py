@@ -165,6 +165,9 @@ def get_graph():
         squeeze_g = squeeze_list(data)
         # add PCA features
         squeeze_g = add_PCA(squeeze_g)
+        squeeze_g = InitialSample_BFS(squeeze_g)
+        squeeze_g = dgl.reorder_graph(squeeze_g,edge_permute_algo='src')
+        squeeze_g = add_random_efeature(squeeze_g)
         graph = dgl2dict(squeeze_g,filename)
         g = {}
         g[filename.split('.')[0]] = graph
