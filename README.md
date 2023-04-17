@@ -8,7 +8,7 @@ For now, the website can only be ran in debug mode.  A Node.js environment will 
 ### Clone the project
 
 ```
-git clone https://github.com/yu-zhou-333/VisualToolForGNNExplainerBenchmark.git
+https://github.com/yu-zhou-333/undergraduate-project-SJTU.git
 ```
 
 There two parts you need to activate before seeing the pages.
@@ -18,7 +18,7 @@ There two parts you need to activate before seeing the pages.
 First, cd to frontend and install the requirements using node.
 
 ```
-cd VisualToolForGNNExplainerBenchmark/frontend
+cd ./frontend
 ```
 
 ```
@@ -40,7 +40,7 @@ The page will be displayed at localhost:3000.
 Second, cd to backend and install requirements.
 
 ```
-cd VisualToolForGNNExplainerBenchmark/backend
+cd ./backend
 conda env create -f backend.yaml
 conda activate backend
 ```
