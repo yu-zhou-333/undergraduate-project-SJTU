@@ -83,12 +83,6 @@ export default function OpeningGraphs(
                 });
                 k++;
             }
-
-            // for(let k in links){
-            //     if (links[k].source === current.node.id){
-                    
-            //     }
-            // }
         }
         return selected_list;
     }
