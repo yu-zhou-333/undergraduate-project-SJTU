@@ -1,4 +1,42 @@
 # undergraduate-project-SJTU
+
+This is a website base visualization tool for graph.  It can help you build a highly interactive graph visualization with limited code. The website only supports [dgl](https://www.dgl.ai/) graph now.  You may learn how to use dgl to store your data [here](https://docs.dgl.ai/).
+
+## Highlighted Features
+
+### User-Friendly
+
+By simply uploading your dgl graph, you can create a highly interactive graph visualization. You may complete some intuitive interactions with the visualization graph easily by selecting or clicking.
+
+### Interactive Visualization Graphs
+
+This tool provides graphs written by d3. The original graphs are from observable. You could find more examples [here](https://observablehq.com/@d3/charts?collection=@d3/charts).  
+
+#### Components
+
+We provide the following components to allow you to adjust your visualization:
+
+- Datasets: select graphs you have been uploaded
+- NFeatures: select node feature that you wish to display
+- Groups : select node feature you want to use to distinguish nodes
+- EFeatures : select edge feature that you wish to display in edges. Currently, we use the opacity of edge to reflect the edge feature you have selected, which means the tool only accept one number for one edge.
+- NodeID : Node ID of the center node. The ID is the same as the id in the dgl graph.
+- Hop : Hop of the center node.
+
+  #### Interactions
+
+##### Select nodes using histogram
+
+![hist](image/hist.gif)
+
+##### Mark the node by single-clicking && Enter a node by double-clicking
+
+![select_node](image/select_node.gif)
+
+##### Use groups to distinguish nodes
+
+![groups](image/groups.gif)
+
 ## Get Started
 
 ### Install Node.js
