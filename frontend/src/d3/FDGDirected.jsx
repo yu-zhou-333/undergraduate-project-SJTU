@@ -52,7 +52,6 @@ export function ForceGraph(prev,
     if(LSO){
       const normalize_LSO = d3.scaleLinear().domain([d3.min(LSO),d3.max(LSO)]).range([0,1]);
       LSO = LSO.map(d=>normalize_LSO(d));
-      console.log('lso',LSO,W);
     } 
     const CenterNode = []
     var transform = d3.zoomIdentity;
