@@ -141,15 +141,15 @@ def get_datasets():
     datasets = get_Datasets()
     logdir = current_app.config["LOGDIR"]
     g = {}
-    for dataset in datasets:
-        writeDictGraph(logdir,dataset,dataset['name'])
-        g[dataset['name']] = dataset
+    # for dataset in datasets:
+    #     writeDictGraph(logdir,dataset,dataset['name'])
+    #     g[dataset['name']] = dataset
 
    ######## Load datasets from cache #######################
-    # dataset_names = ['cora','citeseer']
-    # for dataset in dataset_names:
-    #     with open(logdir+'/'+dataset+'.json') as f:
-    #         g[dataset] = json.load(f)
+    dataset_names = ['cora','citeseer']
+    for dataset in dataset_names:
+        with open(logdir+'/'+dataset+'.json') as f:
+            g[dataset] = json.load(f)
     ########################################################
     return jsonify({'success':True,'graph':g})
 

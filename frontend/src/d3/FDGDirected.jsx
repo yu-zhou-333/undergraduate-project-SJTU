@@ -1,4 +1,5 @@
 var d3 = require("d3");
+import  {interpolateRgb} from 'd3-interpolate'
 
 
 export function ForceGraph(prev,
@@ -30,6 +31,7 @@ export function ForceGraph(prev,
     edgemask = d=>1, // function of edge mask
     linktype = d=>0, // given d , return the type of d where 1 means ground truth; set 1 to obtain link arrow
     colors = d3.schemeTableau10, // an array of color strings, for the node groups
+    similarity = false, // If true, use deactivate colors and use cos similarity between nodes  
     width = 640, // outer width, in pixels
     height = 400, // outer height, in pixels
     invalidation // when this promise resolves, stop the simulation
@@ -53,6 +55,9 @@ export function ForceGraph(prev,
       const normalize_LSO = d3.scaleLinear().domain([d3.min(LSO),d3.max(LSO)]).range([0,1]);
       LSO = LSO.map(d=>normalize_LSO(d));
     } 
+    const sim_color = interpolateRgb("steelblue","white");
+    console.log(sim_color(0),sim_color(1));
+
     const CenterNode = []
     var transform = d3.zoomIdentity;
     

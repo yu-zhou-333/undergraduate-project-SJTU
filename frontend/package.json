@@ -11,6 +11,7 @@
     "ace-builds": "^1.10.0",
     "axios": "^0.27.2",
     "d3": "^7.6.1",
+    "d3-interpolate": "^3.0.1",
     "mathjax-react": "^2.0.1",
     "react": "latest",
     "react-ace": "^10.1.0",
