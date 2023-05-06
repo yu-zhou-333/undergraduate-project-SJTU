@@ -1,7 +1,8 @@
 import React from "react";
 import { getDatasets,uploadGraph} from '../service/dataService';
 import {ProcessHetergraph} from "./ProcessHetergraph";
-import { Button, Grid,Box,TextField, Typography,FormControl,InputLabel,Select,MenuItem,Slider,Input,Alert, CircularProgress, AlertTitle } from '@mui/material';
+import { Button, Grid,Box,TextField, Typography,FormControl,InputLabel,Select,MenuItem,Slider,Input,Alert, CircularProgress, AlertTitle,
+Checkbox,ListItemText } from '@mui/material';
 import ForceGraph from "../d3/FDG";
 import OpeningGraphs from "../d3/Opening";
 import "ace-builds/src-noconflict/mode-python";
@@ -22,9 +23,10 @@ export interface IState {
     upload_graph : string,
     selected_graph_features : string[],
     selected_graph_nfeature: string,
+    graph_groups : string[],
     edge_features : string[],
     selected_edge_feature : string,
-    selected_graph_group:string,
+    selected_graph_groups:string[],
     bins : any,
     IsGraphDisplayed : boolean,
     NodeID : number,
@@ -48,7 +50,8 @@ export default class Page1 extends React.Component <IProps,IState>
             selected_graph_nfeature : '',
             edge_features : [],
             selected_edge_feature : '',
-            selected_graph_group : '',
+            selected_graph_groups : [],
+            graph_groups : [],
             IsGraphDisplayed : false,
             NodeID : 0,
             Hop : 1,
@@ -114,7 +117,7 @@ export default class Page1 extends React.Component <IProps,IState>
         let edge_features = g.edgemask_type;
         console.log('graph features',graph_features,edge_features)
         this.setState({...this.state,selected_dataset: String(e.target.value),selected_graph_features:graph_features,
-        edge_features:edge_features,selected_graph_nfeature:'',selected_graph_group:'',highlight_fdg_nodes:[],
+        edge_features:edge_features,selected_graph_nfeature:'',selected_graph_groups:[],highlight_fdg_nodes:[],
         selected_edge_feature:'',Hop:1})
     }
 
@@ -128,30 +131,41 @@ export default class Page1 extends React.Component <IProps,IState>
         let nfeature = g.nfeatures_map[String(e.target.value)]
         let painter = this.drawOpening(data,nfeature,0,'InitialSample')
         this.setState({...this.state,selected_graph_nfeature:String(e.target.value),
-            selected_edge_feature:'',selected_graph_group:'',
+            selected_edge_feature:'',selected_graph_groups:[],
             IsGraphDisplayed:true,graph_painter:painter})
     }
-
-    handleSelectNgroup = (e:any) => {
+    
+    handleSelectNgroups = (e:any) => {
         let g = this.state.graphs[this.state.selected_dataset]
         let data = {
             nodes : g.nodes,
             links : g.edges
         }
-        let nfeature = g.nfeatures_map[String(e.target.value)]
-        let painter = this.state.graph_painter;
-        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
-        this.state.bins,nfeature,this.state.selected_edge_feature);
-        this.setState({...this.state,selected_graph_group:String(e.target.value),
-            IsGraphDisplayed:true,graph_painter:painter})
+        console.log('nfeatures selected',e,e.target.value);
+        let ngroups = e.target.value.map((d:any)=>g.nfeatures_map[String(d)])
+        this.setState({...this.state,graph_groups:e.target.value,selected_graph_groups:ngroups})
     }
+
+    // handleSelectNgroup = (e:any) => {
+    //     let g = this.state.graphs[this.state.selected_dataset]
+    //     let data = {
+    //         nodes : g.nodes,
+    //         links : g.edges
+    //     }
+    //     let nfeature = g.nfeatures_map[String(e.target.value)]
+    //     let painter = this.state.graph_painter;
+    //     painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
+    //     this.state.bins,nfeature,this.state.selected_edge_feature);
+    //     this.setState({...this.state,selected_graph_group:String(e.target.value),
+    //         IsGraphDisplayed:true,graph_painter:painter})
+    // }
 
     handleSelectEfeature = (e:any) => {
         let g = this.state.graphs[this.state.selected_dataset]
         let efeature = String(e.target.value)
         let painter = this.state.graph_painter;
         painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
-        this.state.bins,g.nfeatures_map[this.state.selected_graph_group],efeature);
+        this.state.bins,undefined,efeature);
         this.setState({...this.state,
             IsGraphDisplayed:true,graph_painter:painter,selected_edge_feature:efeature})
     }
@@ -213,8 +227,7 @@ export default class Page1 extends React.Component <IProps,IState>
         let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,hist_label:this.state.selected_graph_nfeature,
         width:windowWidth,height:windowHeight},{Display_label:DisplayLabel},undefined,
         {nidButton:nidButton,hopButton:hopButton})
-        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins,
-            g.nfeatures_map[this.state.selected_graph_group,this.state.selected_edge_feature]);
+        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins);
         painter.update_hop(this.state.Hop);
         return painter;
     }
@@ -281,29 +294,29 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
-            <Grid item xs={2}>
-                <FormControl sx={{ m: 1 ,minWidth:160}}>
-                <InputLabel id='select-helper-label'>Groups</InputLabel>
+
+            <Grid xs={2} item>
+                <FormControl sx={{ m: 1 ,minWidth:160,maxWidth:200}}>
+                <InputLabel >Groups</InputLabel>
                 <Select
-                labelId="select-helper-label"
-                label="Groups"
-                value={this.state.selected_graph_group}
-                autoWidth
-                onChange={(e)=>{
-                    this.handleSelectNgroup(e)
-                }}
+                labelId="multiple-checkbox-label"
+                id="Groups"
+                multiple
+                value={this.state.graph_groups}
+                onChange={this.handleSelectNgroups}
+                renderValue={(selected) => selected.join(', ')}
                 >
-                <MenuItem value=''>
-                    <em>None</em>
-                </MenuItem>
-                {
-                    this.state.selected_graph_features.map((method:any)=>
-                    <MenuItem value={method} key={method}>{method}</MenuItem>
-                    )
-                }
+                {this.state.selected_graph_features.map((method) => (
+                    <MenuItem key={method} value={method}>
+                    <Checkbox checked={this.state.graph_groups.indexOf(method) > -1} />
+                    <ListItemText primary={method} />
+                    </MenuItem>
+                ))}
                 </Select>
                 </FormControl>
             </Grid>
+            
+
             <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
                 <InputLabel id='select-helper-label'>EFeatures</InputLabel>
@@ -375,14 +388,6 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Grid>
             </Grid>
 
-            <Grid item xs={2}>
-            <Button variant="contained" component="label" >
-                Upload
-                <input hidden accept="MIME_type" multiple type="file" onChange={this.uploadGraph} />
-            </Button>
-            </Grid>
-            <h1>{this.state.upload_graph}</h1>
-
             <Grid item container id='FDGControl' xs = {6} spacing={2}>
                 <Grid item xs={3}>
                     <InputLabel id='select-helper-label'>NodeID</InputLabel>
@@ -398,7 +403,7 @@ export default class Page1 extends React.Component <IProps,IState>
                             // painter.update_nid(Number(e.target.value));
                             // painter.update_fdgnodes();
                             painter.drawGraph(Number(e.target.value),this.state.Hop,this.state.highlight_fdg_nodes,
-                            this.state.bins,g.nfeatures_map[this.state.selected_graph_group],this.state.selected_edge_feature);
+                            this.state.bins,undefined,this.state.selected_edge_feature);
                             this.setState({...this.state,NodeID:Number(e.target.value),IsGraphDisplayed:true,
                             graph_painter:painter});
                         }}
@@ -424,7 +429,7 @@ export default class Page1 extends React.Component <IProps,IState>
                         // painter.update_hop(Number(e.target.value));
                         // painter.update_fdgnodes();
                         painter.drawGraph(this.state.NodeID,hop,this.state.highlight_fdg_nodes,
-                        this.state.bins,g.nfeatures_map[this.state.selected_graph_group],this.state.selected_edge_feature);
+                        this.state.bins,undefined,this.state.selected_edge_feature);
                         this.setState({...this.state,Hop:hop,IsGraphDisplayed:true,
                         graph_painter:painter})
                     }}
@@ -438,6 +443,13 @@ export default class Page1 extends React.Component <IProps,IState>
                 />
                 </Grid>
             </Grid>
+            <Grid item xs={2}>
+            <Button variant="contained" component="label" >
+                Upload
+                <input hidden accept="MIME_type" multiple type="file" onChange={this.uploadGraph} />
+            </Button>
+            </Grid>
+
 
             <Grid item container id='Grapharea' xs={12} spacing={1}>
                 <Grid item className="graphs" container id='Fdg' xs={12}>

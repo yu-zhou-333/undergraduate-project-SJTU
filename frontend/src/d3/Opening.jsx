@@ -11,6 +11,27 @@ export function SelectEdgesByNodes(nodes,edges){
     return new_edges
 }
 
+function cosineSimilarity_ouput0_1(a, b) {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+  
+    for (let i = 0; i < a.length; i++) {
+      dotProduct += a[i] * b[i];
+      normA += a[i] * a[i];
+      normB += b[i] * b[i];
+    }
+  
+    normA = Math.sqrt(normA);
+    normB = Math.sqrt(normB);
+  
+    if (normA === 0 || normB === 0) {
+      return 0;
+    } else {
+      return (dotProduct / (normA * normB)+1)/2;
+    }
+  }
+
 export default function OpeningGraphs(
     prevHis,
     prevFDG, // the d3 selection where to append the graph
@@ -148,6 +169,7 @@ export default function OpeningGraphs(
         if(new_nid!==undefined)nid = new_nid;
         if(new_hop!==undefined)hop = new_hop;
         if(new_nid!==undefined||new_hop!==undefined)update_fdgnodes();
+        
         // console.log('nid',nid);
         // console.log('hop',hop);
         cleanFDG();
@@ -160,9 +182,10 @@ export default function OpeningGraphs(
             HighlightNodes:highlight_fdg_nodes,
             CenterNodeId:nid,
             linkStroke:d=>"#424242",
-            nodeTitle: group ? d=>`${d.id}\nG : ${d.features[group]}` : undefined,
+            nodeTitle: group ? d=>`id : ${d.id}\nG : ${d.features[group]}` : undefined,
             nodeGroup: group ? d=>d.features[group] : undefined,
-            linkStrokeOpacity : efeature ? d=>d.edgemasks[efeature] : undefined
+            linkStrokeOpacity : efeature ? d=>d.edgemasks[efeature] : undefined,
+            similarity: nid ? d=>cosineSimilarity_ouput0_1(nodes[nid].features[nfeature],d.features[nfeature]) : undefined,
             // linktype: d=>1
         })
 

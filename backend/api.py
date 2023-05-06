@@ -138,7 +138,7 @@ def get_newExplain():
 # init datasets
 @api.route('/datasets',methods=['GET'])
 def get_datasets():
-    datasets = get_Datasets()
+    # datasets = get_Datasets()
     logdir = current_app.config["LOGDIR"]
     g = {}
     # for dataset in datasets:
