@@ -1,7 +1,6 @@
 import dgl
 import json
 import torch as th
-from buildGraph import BA4labelDataset
 
 
 def dgl2dict(g, graph_name = None, graph_label = -1):
@@ -52,36 +51,3 @@ def writeDictGraph(logdir,g,filename):
     with open(logdir+'/'+filename+'.json', 'w') as f:
         json.dump(g,f)
     return g
-
-def write9BAs(logdir,g_list,g_labels):
-    """
-    Parameters:
-    logdir : str
-        the path registered in server
-    g_list: list of dgl graphs
-    Returns:
-    A list of dict of dgl graphs
-    """
-    res = []
-    for i,g in enumerate(g_list):
-        t = dgl2dict(g,i+1,g_labels[i])
-        res.append(t)
-        with open(logdir + '/ba_{}.json'.format(i+1),'w') as f:
-            json.dump(t,f)
-    return res
-
-if __name__ == '__main__':
-    ba = BA4labelDataset(graphs_num=9)
-    g = ba.graphs
-    labels = ba.labels
-    graph_data = {
-    ('drug', 'interacts', 'drug'): (th.tensor([0, 1]), th.tensor([1, 2])),
-    ('drug', 'interacts', 'gene'): (th.tensor([0, 1]), th.tensor([2, 3])),
-    ('drug', 'treats', 'disease'): (th.tensor([1]), th.tensor([2]))
-    }
-    hg = dgl.heterograph(graph_data)
-    hsrcs,hdsts = hg.edges(etype=('drug', 'interacts', 'gene'))
-    srcs = g[0].edges()
-
-    print()
-    write9BAs('backend/cache',g,labels)

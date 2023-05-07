@@ -10,6 +10,7 @@ export function ForceGraph(prev,
     nodeGroup, // given d in nodes, returns an (ordinal) value for color
     nodeGroups, // an array of ordinal values representing the node groups
     nodeTitle, // given d in nodes, a title string
+    nodeTitle2, // given d in nodes, a title string 
     nodeFill = "currentColor", // node stroke fill (if not using a group color encoding)
     HighlightNodeFill = '#ff1744', // Node color when selected
     HighlightNodes = [], // nodes to highlight
@@ -39,12 +40,14 @@ export function ForceGraph(prev,
       linkStrength
     } = {}
   ) {
+    console.log('fdgnodes',nodes)
     // Compute values.
     const N = d3.map(nodes, nodeId).map(intern);
     const LS = d3.map(links, linkSource).map(intern);
     const LT = d3.map(links, linkTarget).map(intern);
     if (nodeTitle === undefined) nodeTitle = (_, i) => N[i];
     const T = nodeTitle == null ? null : d3.map(nodes, nodeTitle);
+    const T2 = nodeTitle2 == null ? null : d3.map(nodes, nodeTitle2);
     const G = nodeGroup == null ? null : d3.map(nodes, nodeGroup).map(intern);
     const W = typeof linkStrokeWidth !== "function" ? null : d3.map(links, linkStrokeWidth);
     const L = typeof linkStroke !== "function" ? null : d3.map(links, linkStroke);
@@ -218,7 +221,7 @@ export function ForceGraph(prev,
     if (W) link.attr("stroke-width", ({index: i}) => W[i]);
     if (L) link.attr("stroke", ({index: i}) => L[i]);
     if (G) node.attr("fill", ({index: i}) => color(G[i]));
-    if (T) node.append("title").text(({index: i}) => T[i]);
+    if (T2) node.append("title").text(({index: i}) => T2[i]);
     if (LSO) link.attr("stroke-opacity",({index: i}) => LSO[i]);
     const nodesText = svg.selectAll("text.label")
                           .data(nodes)
@@ -287,7 +290,7 @@ export function ForceGraph(prev,
 
 
     const zoom = d3.zoom()
-    .scaleExtent([1/2, 64])
+    .scaleExtent([1/2, 1000])
     .on("zoom", zoomed);
 
     svg.call(zoom)

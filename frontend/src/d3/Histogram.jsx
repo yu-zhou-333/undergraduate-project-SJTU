@@ -85,8 +85,8 @@ function Histogram(data,prev, {
     .join("rect")
       .attr("x", d => xScale(d.x0) + insetLeft)
       .attr("width", d => Math.max(0, xScale(d.x1) - xScale(d.x0) - insetLeft - insetRight))
-      .attr("y", (d, i) => yScale(Y[i]))
-      .attr("height", (d, i) => yScale(0) - yScale(Y[i]))
+      .attr("y", (d, i) => Math.min(yScale(Y[i]),yScale(yDomain[1]/50)))
+      .attr("height", (d, i) => yScale(0) - yScale(Y[i]) ? Math.max(yScale(0) - yScale(Y[i]),yScale(0)-yScale(yDomain[1]/50)) : 0)
           .on('mouseenter',function(e,d){
             if (svg.property('highlightRange')===0 || svg.property('highlightRange').low===undefined)
             {
@@ -145,7 +145,7 @@ function Histogram(data,prev, {
       const extent = [[marginLeft, marginTop], [width - marginRight, height - marginTop]];
     
       svg.call(d3.zoom()
-          .scaleExtent([1, 8])
+          .scaleExtent([1, 100])
           .translateExtent(extent)
           .extent(extent)
           .on("zoom", zoomed));
@@ -154,10 +154,7 @@ function Histogram(data,prev, {
       svg.on("mousedown.zoom", null)
     
       function zoomed(event) {
-        console.log('1',xRange);
         xRange = [marginLeft, width - marginRight].map(d => event.transform.applyX(d));
-        console.log('2',xRange);
-        console.log(svg.selectAll(".x-axis"))
         antinorm = d3.scaleLinear().domain([xRange[0],xRange[1]]).range([xDomain[0],xDomain[1]])
         xScale = xType(xDomain, xRange);
         svg.selectAll(".bars rect").attr("x", d =>xScale(d.x0) + insetLeft).attr("width", 

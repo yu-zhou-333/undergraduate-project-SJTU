@@ -375,13 +375,7 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Grid>
             </Grid>
 
-            <Grid item xs={2}>
-            <Button variant="contained" component="label" >
-                Upload
-                <input hidden accept="MIME_type" multiple type="file" onChange={this.uploadGraph} />
-            </Button>
-            </Grid>
-            <h1>{this.state.upload_graph}</h1>
+            
 
             <Grid item container id='FDGControl' xs = {6} spacing={2}>
                 <Grid item xs={3}>
@@ -438,6 +432,14 @@ export default class Page1 extends React.Component <IProps,IState>
                 />
                 </Grid>
             </Grid>
+
+            <Grid item xs={2}>
+            <Button variant="contained" component="label" >
+                Upload
+                <input hidden accept="MIME_type" multiple type="file" onChange={this.uploadGraph} />
+            </Button>
+            </Grid>
+
 
             <Grid item container id='Grapharea' xs={12} spacing={1}>
                 <Grid item className="graphs" container id='Fdg' xs={12}>

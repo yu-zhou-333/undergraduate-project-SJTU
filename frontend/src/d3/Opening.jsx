@@ -160,7 +160,8 @@ export default function OpeningGraphs(
             HighlightNodes:highlight_fdg_nodes,
             CenterNodeId:nid,
             linkStroke:d=>"#424242",
-            nodeTitle: group ? d=>`${d.id}\nG : ${d.features[group]}` : undefined,
+            nodeTitle : group ? d=>`id : ${d.id}\nG : ${d.features[group]}` : undefined,
+            nodeTitle2 : nfeature ? d=>`id : ${d.id}\nval : ${d.features[nfeature]}` : undefined,
             nodeGroup: group ? d=>d.features[group] : undefined,
             linkStrokeOpacity : efeature ? d=>d.edgemasks[efeature] : undefined
             // linktype: d=>1
