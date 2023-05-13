@@ -4,9 +4,8 @@ import axios from 'axios';
 // Currently, it does not support remote backend mode. 
 const ENABLE_STATIC_JSON = false;
 // Remote Backend.
-const URL = process.env.NODE_ENV === 'development'
-    ? 'http://localhost:7777'
-    : window.location.origin;
+const URL =  'http://localhost:7777'
+
 const axiosInstance1 = axios.create({
     baseURL: `${URL}/api/`,
     // timeout: 1000,
@@ -97,6 +96,7 @@ export async function uploadExplainMethod(text:any) : Promise<any>{
 
 // Get initial Datasets
 export async function getDatasets(): Promise<any>{
+    console.log(process.env.NODE_ENV,window.location.origin)
     let url = '/datasets';
     let res;
     res = await axiosInstance.get(url);

@@ -17,7 +17,7 @@ This tool provides graphs written by d3. The original graphs are from observable
 We provide the following components to allow you to adjust your visualization:
 
 - Datasets: select graphs you have been uploaded
-- NFeatures: select node feature that you wish to display
+- NFeatures: select node feature that you wish to display (only accept 1 dimension feature)
 - Groups : select node feature you want to use to distinguish nodes
 - EFeatures : select edge feature that you wish to display in edges. Currently, we use the opacity of edge to reflect the edge feature you have selected, which means the tool only accept one number for one edge.
 - NodeID : Node ID of the center node. The ID is the same as the id in the dgl graph.
@@ -53,6 +53,8 @@ There two parts you need to activate before seeing the pages.
 
 ### Frontend
 
+#### Run in development mode
+
 First, cd to frontend and install the requirements using node.
 
 ```
@@ -73,6 +75,31 @@ yarn start
 
 The page will be displayed at localhost:3000.
 
+#### Run in production mode
+
+If you don't have a need to debugging and don't want to install too many packages, you could choose to run frontend in production mode. You will need npm/yarn and a server to run frontend in production mode.
+
+To install a server:
+
+``````  
+yarn global add serve
+``````
+
+A production build of the frontend is available [here](./resources). To run this build:
+
+``` 
+cd ./resources
+serve -s frontend-build
+```
+
+The page will be displayed at localhost:3000 by default. If you wish to use the above build, please make sure the backend is activated at localhost:7777.
+
+You can also make a new build by:
+
+```
+yarn build
+```
+
 ### Backend
 
 Second, cd to backend and install requirements.
@@ -89,3 +116,4 @@ then, run the following command to activate backend.
 python server.py --logdir cache/
 ```
 
+The backend will be activated at localhost:7777 by default.

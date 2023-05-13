@@ -1,6 +1,6 @@
 {
   "short_name": "VisualTool",
-  "name": "VisualToolForGnnExplainerBenchmark",
+  "name": "VisualToolForGraph",
   "icons": [
     {
       "src": "favicon.ico",
