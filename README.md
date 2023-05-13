@@ -22,6 +22,7 @@ We provide the following components to allow you to adjust your visualization:
 - EFeatures : select edge feature that you wish to display in edges. Currently, we use the opacity of edge to reflect the edge feature you have selected, which means the tool only accept one number for one edge.
 - NodeID : Node ID of the center node. The ID is the same as the id in the dgl graph.
 - Hop : Hop of the center node.
+- Upload : Upload a dgl graph (You could use dgl.save_graphs() to create graph data. You may find an example at [here](backend\create_test_data.py))
 
   #### Interactions
 

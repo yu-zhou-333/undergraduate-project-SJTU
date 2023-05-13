@@ -1,8 +1,0 @@
-{
-    "datasets": [
-    {"id": 1, "name": "Cora"},
-    {"id": 2, "name": "Citeseer"},
-    {"id": 3, "name": "G1"}
-    ], 
-    "success": true
-}
