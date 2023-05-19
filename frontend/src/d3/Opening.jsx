@@ -107,8 +107,9 @@ export default function OpeningGraphs(
         console.log("drawGraph highNOdes",highlight_fdg_nodes);
         if(new_group!==undefined||new_group!=='')group=new_group;
         if(new_efeature!==undefined||new_efeature!=='')efeature=new_efeature;
-        drawFDG(new_nid,new_hop)
+        let nodes_num = drawFDG(new_nid,new_hop)
         drawHis(new_bins)
+        return nodes_num;
     }
 
     function cleanHist(){
@@ -166,6 +167,14 @@ export default function OpeningGraphs(
             linkStrokeOpacity : efeature ? d=>d.edgemasks[efeature] : undefined
             // linktype: d=>1
         })
+        nidButton.dispatch('updateValue',{
+            detail:{
+                nid:nid,
+                hop:hop,
+                highlight_fdg_nodes:highlight_fdg_nodes,
+                node_num : fdg_nodes.length
+            }
+        });
 
         // When Center Node is selected, update fdg
         d3.select(fdg).on('CenterNode',()=>{
@@ -178,7 +187,8 @@ export default function OpeningGraphs(
                 detail:{
                     nid:nid,
                     hop:hop,
-                    highlight_fdg_nodes:highlight_fdg_nodes
+                    highlight_fdg_nodes:highlight_fdg_nodes,
+                    node_num : fdg_nodes.length
                 }
             });
             
@@ -203,6 +213,7 @@ export default function OpeningGraphs(
             })
         })
         prevFDG.selectAll('svg').style("border","solid 1px #2196f3");
+        return fdg_nodes.length
     }
 
     function update_nid(new_nid){
@@ -221,6 +232,7 @@ export default function OpeningGraphs(
     return Object.create({
         drawGraph : drawGraph,
         cleanFDG : cleanFDG,
+        cleanHist : cleanHist,
         update_hop: update_hop,
         update_nid : update_nid,
         update_fdgnodes : update_fdgnodes,

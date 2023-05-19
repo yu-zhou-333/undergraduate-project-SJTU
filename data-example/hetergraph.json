@@ -1,4 +1,6 @@
-{"name": 1, "label": 3, 
+{
+    "name": 1,
+    "label": 3, 
     "canonical_etypes": [["_N", "_E", "_N"],[]], 
     "num_nodes": {"_N": 30}, 
     "graphs": [{

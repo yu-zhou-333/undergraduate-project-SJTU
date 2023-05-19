@@ -30,7 +30,8 @@ export interface IState {
     NodeID : number,
     Hop : number,
     graph_painter : any,
-    highlight_fdg_nodes : any
+    highlight_fdg_nodes : any,
+    selected_node_num : number,
 }
 
 export default class Page1 extends React.Component <IProps,IState>
@@ -54,6 +55,7 @@ export default class Page1 extends React.Component <IProps,IState>
             Hop : 1,
             graph_painter : undefined,
             highlight_fdg_nodes : [],
+            selected_node_num: 0,
         }
     }
     async getInitDatasets(){
@@ -112,10 +114,13 @@ export default class Page1 extends React.Component <IProps,IState>
         let g = this.state.graphs[String(e.target.value)];
         let graph_features = g.nfeatures;
         let edge_features = g.edgemask_type;
-        console.log('graph features',graph_features,edge_features)
+        if (this.state.graph_painter!==undefined)
+        {
+            d3.select("body").select('#Grapharea').selectAll('svg').remove();
+        }
         this.setState({...this.state,selected_dataset: String(e.target.value),selected_graph_features:graph_features,
         edge_features:edge_features,selected_graph_nfeature:'',selected_graph_group:'',highlight_fdg_nodes:[],
-        selected_edge_feature:'',Hop:1})
+        selected_edge_feature:'',Hop:1,IsGraphDisplayed:false,selected_node_num:0})
     }
 
     handleSelectNfeature = (e:any) => {
@@ -140,19 +145,19 @@ export default class Page1 extends React.Component <IProps,IState>
         }
         let nfeature = g.nfeatures_map[String(e.target.value)]
         let painter = this.state.graph_painter;
-        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
+        let nodes_num = painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
         this.state.bins,nfeature,this.state.selected_edge_feature);
         this.setState({...this.state,selected_graph_group:String(e.target.value),
-            IsGraphDisplayed:true,graph_painter:painter})
+            IsGraphDisplayed:true,graph_painter:painter,selected_node_num:nodes_num})
     }
 
     handleSelectEfeature = (e:any) => {
         let g = this.state.graphs[this.state.selected_dataset]
         let efeature = String(e.target.value)
         let painter = this.state.graph_painter;
-        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
+        let nodes_num = painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,
         this.state.bins,g.nfeatures_map[this.state.selected_graph_group],efeature);
-        this.setState({...this.state,
+        this.setState({...this.state,selected_node_num:nodes_num,
             IsGraphDisplayed:true,graph_painter:painter,selected_edge_feature:efeature})
     }
 
@@ -206,14 +211,14 @@ export default class Page1 extends React.Component <IProps,IState>
         let nidButton = d3.select("body").select("#nidButton")
                             .on("updateValue",(d:any)=>{
                                 let info = d.detail;
-                                this.setState({...this.state,NodeID:info.nid,Hop:info.hop})
+                                this.setState({...this.state,NodeID:info.nid,Hop:info.hop,selected_node_num:info.node_num})
                             });
         let hopButton = d3.select("body").select("#hopButton");
 
         let painter = OpeningGraphs(prevBar, prevFdg,data,{nfeature:nfeature,hist_label:this.state.selected_graph_nfeature,
         width:windowWidth,height:windowHeight},{Display_label:DisplayLabel},undefined,
         {nidButton:nidButton,hopButton:hopButton})
-        painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins,
+        let nodes_num = painter.drawGraph(undefined,undefined,this.state.highlight_fdg_nodes,bins,
             g.nfeatures_map[this.state.selected_graph_group,this.state.selected_edge_feature]);
         painter.update_hop(this.state.Hop);
         return painter;
@@ -258,6 +263,7 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
+
             <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
                 <InputLabel id='select-helper-label'>NFeatures</InputLabel>
@@ -281,6 +287,7 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
+
             <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
                 <InputLabel id='select-helper-label'>Groups</InputLabel>
@@ -304,6 +311,7 @@ export default class Page1 extends React.Component <IProps,IState>
                 </Select>
                 </FormControl>
             </Grid>
+
             <Grid item xs={2}>
                 <FormControl sx={{ m: 1 ,minWidth:160}}>
                 <InputLabel id='select-helper-label'>EFeatures</InputLabel>
@@ -417,10 +425,10 @@ export default class Page1 extends React.Component <IProps,IState>
                         let g = this.state.graphs[this.state.selected_dataset];
                         // painter.update_hop(Number(e.target.value));
                         // painter.update_fdgnodes();
-                        painter.drawGraph(this.state.NodeID,hop,this.state.highlight_fdg_nodes,
+                        let nodes_num = painter.drawGraph(this.state.NodeID,hop,this.state.highlight_fdg_nodes,
                         this.state.bins,g.nfeatures_map[this.state.selected_graph_group],this.state.selected_edge_feature);
                         this.setState({...this.state,Hop:hop,IsGraphDisplayed:true,
-                        graph_painter:painter})
+                        graph_painter:painter,selected_node_num:nodes_num})
                     }}
                     onBlur={this.handleBlur_Hop}
                     inputProps={{
@@ -431,8 +439,17 @@ export default class Page1 extends React.Component <IProps,IState>
                     }}
                 />
                 </Grid>
+
+                {
+                this.state.IsGraphDisplayed && 
+                <Grid item xs={3}>
+                <h2>{'node_num:'+this.state.selected_node_num}</h2>
+                </Grid>
+                }
             </Grid>
 
+           
+            
             <Grid item xs={2}>
             <Button variant="contained" component="label" >
                 Upload
