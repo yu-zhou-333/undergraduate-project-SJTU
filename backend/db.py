@@ -55,7 +55,11 @@ def add_random_efeature(g,edgeType='_E'):
 
 def InitialSample_BFS(g,min_size=100,max_size=500,nodeType='_N'):
     """Sampling a sub graph using BFS """
-    InitialSample= torch.zeros(len(g.nodes()))
+    num_nodes = len(g.nodes())
+    if (num_nodes<=min_size):
+        g.nodes[nodeType].data['InitialSample'] = torch.ones(num_nodes)
+        return g
+    InitialSample= torch.zeros(num_nodes)
     num = 0
     nid = 0
     selected_nodes = []
