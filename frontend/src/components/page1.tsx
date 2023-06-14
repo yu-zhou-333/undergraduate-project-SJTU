@@ -1,12 +1,9 @@
 import React from "react";
 import { getDatasets,uploadGraph} from '../service/dataService';
-import {ProcessHetergraph} from "./ProcessHetergraph";
+import ProcessHetergraph from "./ProcessHetergraph";
 import { Button, Grid,Box,TextField, Typography,FormControl,InputLabel,Select,MenuItem,Slider,Input,Alert, CircularProgress, AlertTitle } from '@mui/material';
-import ForceGraph from "../d3/FDG";
 import OpeningGraphs from "../d3/Opening";
-import "ace-builds/src-noconflict/mode-python";
-import "ace-builds/src-noconflict/theme-github";
-import "ace-builds/src-noconflict/ext-language_tools";
+
 
 var d3 = require("d3");
 
@@ -98,15 +95,6 @@ export default class Page1 extends React.Component <IProps,IState>
         }
     }
 
-    drawchart = (graphname:string) => {
-        const prev = d3.select("body").select("#graph");
-        prev.selectAll("svg").remove();
-        let g = this.state.graphs[graphname];
-        console.log(g);
-        let nodes= g.nodes;
-        let links = g.edges;
-        ForceGraph({prev,nodes,links},)
-    }
 
     handleSelectDatasets = (e:any) =>{
         // redraw chart after selecting specify method

@@ -1,5 +1,5 @@
 
-export class ProcessHetergraph
+export default class ProcessHetergraph
 {
     nodes:any = [];
     edges:any = [];

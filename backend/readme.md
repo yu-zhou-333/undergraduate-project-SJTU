@@ -1,4 +1,4 @@
-# Backend For Visual Tool 
+# Backend 
 This is the backend of the website. You may find the algorithms and models we use here.
 ## environment
 We recommend you use conda to manage your environment.
